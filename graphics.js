@@ -225,23 +225,32 @@ $(function () {
         }
     }
 
-    function addRandomBug() {
-        var bug = {
-            radius: 2,
-            x: Math.floor(Math.random() * spaceWidth) * cellSize,
-            y: Math.floor(Math.random() * spaceHeight) * cellSize,
-            direction: Math.floor(Math.random() * 8) * 0.125 * 2 * Math.PI,
-            gender: Math.floor(Math.random() * 2),
-            move: function () {
-                this.x = (this.x + Math.cos(this.direction) + canvas.width) % (canvas.width);
-                this.y = (this.y + Math.sin(this.direction) + canvas.height) % (canvas.height);
-                this.radius = Math.sqrt(Math.pow(this.radius, 2) - stepEnergy / (2 * Math.PI));
-            },
-            feed: function () {
-                this.radius = Math.sqrt(Math.pow(this.radius, 2) + cellNutritionValue / (2 * Math.PI));
+    function addRandomBug(amount) {
+        function bug() {
+            return {
+                radius: 2,
+                x: Math.floor(Math.random() * spaceWidth) * cellSize,
+                y: Math.floor(Math.random() * spaceHeight) * cellSize,
+                direction: Math.floor(Math.random() * 8) * 0.125 * 2 * Math.PI,
+                turnProbability: Math.random(),
+                turnDirection: function () {
+                    return (Math.random() > .5) ? 1 : -1;
+                },
+                gender: Math.floor(Math.random() * 2),
+                move: function () {
+                    this.x = (this.x + Math.cos(this.direction) + canvas.width) % (canvas.width);
+                    this.y = (this.y + Math.sin(this.direction) + canvas.height) % (canvas.height);
+                    this.radius = Math.sqrt(Math.pow(this.radius, 2) - stepEnergy / (2 * Math.PI));
+                },
+                feed: function () {
+                    this.direction = (Math.random() < this.turnProbability) ? this.direction + this.turnDirection() * 0.125 : this.direction,
+                        this.radius = Math.sqrt(Math.pow(this.radius, 2) + cellNutritionValue / (2 * Math.PI));
+                }
             }
         }
-        bugs.push(bug);
+        for (var count = 0; count < amount; count++) {
+            bugs.push(bug());
+        }
         console.log(bugs);
     }
 
@@ -269,6 +278,8 @@ $(function () {
             clearSpace();
             fillRandom();
             drawCells();
+            addRandomBug(20);
+            drawBugs();
             fadeGraph();
         } else {
             // canvas-unsupported code here
@@ -384,7 +395,7 @@ $(function () {
     // Add a bug
     $('#bugbutton').on('click', function () {
         console.log('add bug');
-        addRandomBug();
+        addRandomBug(1);
     });
 
     // Toggle graph on or off
