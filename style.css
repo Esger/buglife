@@ -64,10 +64,6 @@ input, label {
     margin: 0 3px 0 10px;
 }
 
-.fillratio, .grid {
-    width: 30px;
-}
-
 canvas {
     border          : 0 solid black;
     background-color: white;
@@ -116,6 +112,10 @@ canvas {
 #controls #startbutton {
     width              : 38px;
     background-position: 0 -99px;
+}
+
+#controls #randombutton {
+    margin-right: 10px;
 }
 
 #controls #startbutton:hover {

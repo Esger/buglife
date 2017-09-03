@@ -26,7 +26,7 @@
     <g:plusone></g:plusone>
 
     <div id="container">
-        <h1>Conway's game of life - Lab by <a href="http://www.ashware.nl"
+        <h1>Conway's game of life got bugged - <a href="http://www.ashware.nl"
                target="_blank">ashWare</a></h1>
         <canvas id="thetoroid"
                 width="704"
@@ -53,23 +53,12 @@
                 <a href="#"
                    id="randombutton"
                    title="Random"></a>
-                <label>&nbsp;&nbsp;Fill ratio: </label>
-                <input class="fillratio"
-                       type="text"
-                       name="fillratio"
-                       value="20" />
                 <label>Cell size:</label>
                 <label><input class="cellsizer" type="radio" name="cellsizer" value="1" /> 1</label>
                 <label><input class="cellsizer" type="radio" name="cellsizer" value="2" checked /> 2</label>
                 <label><input class="cellsizer" type="radio" name="cellsizer" value="4" /> 4</label>
                 <label><input class="cellsizer" type="radio" name="cellsizer" value="8" /> 8</label>
-                <label>&nbsp;&nbsp;Grid size:
-                <input class="grid"
-                       type="text"
-                       name="grid"
-                       value="3" /></label>
                 <label><input class="trails" type="checkbox" checked /> Trails</label>
-                <label><input class="history" type="checkbox" /> History</label>
 
                 <a href="#"
                    id="rulestoggler"
@@ -158,6 +147,7 @@
             </form>
         </div>
         <canvas id="thegraph"
+                class="hidden"
                 width="704"
                 height="252"></canvas>
         <div id="data">
@@ -167,7 +157,8 @@
             <p>Generations (x-axis): <span id="teller">0</span> - Live cells (y-axis): <span id="cellsalive">0</span> -
                 <span id="speed">0</span> generations/sec.</p>
         </div>
-        <div id="story">
+        <div id="story"
+             class="hidden">
             <div id="ads">
                 <script type="text/javascript">
                     google_ad_client = "pub-9730385762916925";
@@ -190,12 +181,10 @@
                 <a href="http://en.wikipedia.org/wiki/Conway's_Game_of_Life"
                    target="_blank">Wikipedia</a> for an explanation of Conway&rsquo;s life.</p>
             <h2>Experiment</h2>
-            <p>One can experiment with the (initial random) fill ratio, follow the population in the graph, step back through
-                the history of interesting figures you might see.</p>
+            <p>One can experiment with the (initial random) fill ratio, follow the population in the graph.</p>
             <p>Change the cell size with the radio buttons labeled &lsquo;1&rsquo;, &lsquo;2&rsquo;, &lsquo;4&rsquo; and &lsquo;8&rsquo;
                 to zoom in or out. When zooming in, the area will be cropped though.</p>
-            <p>Uncheck &lsquo;Trails&rsquo; to see the raw Conway's life. This will be done automatically when you start navigating
-                in the history.</p>
+            <p>Uncheck &lsquo;Trails&rsquo; to see the raw Conway's life.</p>
             <p>Switch on the &lsquo;life rules&rsquo; and play with them.</p>
             <h2>Draw your own life cells</h2>
             <p>To experiment with your own start cells, you can draw them in the &lsquo;life area&rsquo;: hit <span class="key"></span>stop,
@@ -208,10 +197,7 @@
             <ul>
                 <li>down - stop</li>
                 <li>up - start</li>
-                <li>left - step back</li>
                 <li>right - step forward</li>
-                <li>home - back to first step</li>
-                <li>return - restart life</li>
                 <li>insert - toggle &lsquo;trails&rsquo;</li>
                 <li>delete - clear life</li>
                 <li>click - draw life</li>

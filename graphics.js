@@ -2,18 +2,16 @@
 $(function () {
     var canvas = document.getElementById('thetoroid'), // The canvas where life is drawn
         graphcanvas = document.getElementById('thegraph'), // The canvas where the graph is drawn
-        showGraph = true,
+        showGraph = false,
         $teller = $('#teller'),
         $cellsAlive = $('#cellsalive'),
         $speed = $('#speed'),
         cellsize = parseInt($('input[name=cellsizer]:checked').val(), 10), // Width and heigth of a cell in pixels
-        gridsize = function () { return parseInt($('input.grid').val(), 10); },
         spacewidth = (canvas.width / cellsize),
         spaceheight = (canvas.height / cellsize),
         numbercells = spacewidth * spaceheight, // Number of available cells
-        gridon = function () { return ($('input.grid:checked').length > 0); },
         livecells, // Array with x,y coordinates of living cells
-        fillratio = $('.fillratio').val(), // Percentage of available cells that will be set alive initially
+        fillratio = 20, // Percentage of available cells that will be set alive initially
         startnumberlivecells = numbercells * fillratio / 100,
         yscale = 3 * graphcanvas.height / numbercells, //Ratio to apply values on y-axis
         cellsalive, // Number of cells alive
@@ -21,13 +19,12 @@ $(function () {
         steps = 0, // Number of iterations / steps done
         prevSteps = 0,
         interval = 0, // Milliseconds between iterations
-        keepHistory = false,
-        history, // Array of arrays with livecells
         running = false,
         liferules = [],
         gogogo = null,
         speedHandle = null,
-        speed = 0;
+        speed = 0,
+        bugs = [];
 
     // Set some variables
     function setspace() {
@@ -35,7 +32,6 @@ $(function () {
         spacewidth = (canvas.width / cellsize);
         spaceheight = (canvas.height / cellsize);
         numbercells = spacewidth * spaceheight;
-        fillratio = $('.fillratio').val();
         startnumberlivecells = numbercells * fillratio / 100;
         cellsalive = startnumberlivecells;
     }
@@ -44,7 +40,7 @@ $(function () {
     function initarrays() {
         livecells = [];
         neighbours = [];
-        history = [];
+        bugs = [];
     }
 
     function initliferules() {
@@ -91,40 +87,10 @@ $(function () {
     // Fill livecells with random cellxy's
     function fillrandom() {
         var count;
-        history = [];
         for (count = 0; count < startnumberlivecells; count++) {
             livecells[count] = new Celxy(Math.floor(Math.random() * spacewidth), Math.floor(Math.random() * spaceheight));
         }
-        if (keepHistory) history.push(livecells);
     }
-
-    // Draw grid for easier composing
-    function drawgrid() {
-        var ctx = canvas.getContext('2d'),
-            size = gridsize();
-        if (gridsize === 0) {
-            gridsize = 1;
-        }
-        clearspace();
-        ctx.lineWidth = 1;
-        for (var y = cellsize; y < canvas.height; y += cellsize * size) {
-            ctx.beginPath();
-            ctx.moveTo(0, y - 0.5);
-            ctx.lineTo(canvas.width, y - 0.5);
-            ctx.strokeStyle = "#c2c2c2";
-            ctx.stroke();
-            ctx.closePath();
-        }
-        for (var x = cellsize; x < canvas.width; x += cellsize * size) {
-            ctx.beginPath();
-            ctx.moveTo(x - 0.5, 0);
-            ctx.lineTo(x - 0.5, canvas.height);
-            ctx.strokeStyle = "#c2c2c2";
-            ctx.stroke();
-            ctx.closePath();
-        }
-    }
-    $('.grid').on('focus blur', drawgrid);
 
     // Fade the old screen a bit to white
     function fadeall() {
@@ -160,7 +126,6 @@ $(function () {
         mouseX = Math.floor((event.offsetX ? (event.offsetX) : event.pageX - this.offsetLeft) / cellsize);
         mouseY = Math.floor((event.offsetY ? (event.offsetY) : event.pageY - this.offsetTop) / cellsize);
         livecells[livecells.length] = new Celxy(mouseX, mouseY);
-        if (keepHistory) history.push(livecells);
         drawcells();
         updatedata();
     });
@@ -223,11 +188,6 @@ $(function () {
             if (liferules[neighbours[count]]) {
                 livecell();
             }
-        }
-        if (keepHistory) history.push(livecells);
-        if (history.length > 1000) {
-            // console.log('livecells :' + livecells.length);
-            history = history.slice(-900);
         }
     }
 
@@ -348,7 +308,6 @@ $(function () {
         setspace();
         initarrays();
         clearspace();
-        //drawspace();
         updatedata();
     }
     $('#clearbutton').click(function () {
@@ -358,45 +317,6 @@ $(function () {
         clearlife();
     });
 
-    // Back one life step
-    function back1step() {
-        var generation;
-        if (keepHistory && (history.length > 0)) {
-            $('.trails').attr('checked', false);
-            generation = history.length - 2;
-            steps -= 1;
-            fadeall();
-            livecells = history[generation].slice();
-            history = history.slice(0, generation);
-            drawcells();
-            updatedata();
-        }
-    }
-    $('#prevbutton').click(function () {
-        back1step();
-    });
-    shortcut.add("left", function () {
-        back1step();
-    });
-
-    // To first step
-    function tofirststep() {
-        var generation;
-        if (keepHistory && (history.length > 0)) {
-            $('.trails').attr('checked', false);
-            generation = 0;
-            // steps = 0;
-            fadeall();
-            livecells = history[generation].slice();
-            history = [history.slice(0, generation + 1)];
-            drawcells();
-            updatedata();
-        }
-    }
-    shortcut.add("home", function () {
-        tofirststep();
-    });
-
     // Toggle trails on or off
     shortcut.add("insert", function () {
         if ($('.trails').is(":checked")) {
@@ -404,12 +324,6 @@ $(function () {
         } else {
             $('.trails').attr('checked', true);
         }
-    });
-
-    // Toggle history on or off
-    $('.history').on('click', function () {
-        keepHistory = !keepHistory;
-        $('#prevbutton, #stepbutton').toggleClass('hidden');
     });
 
     // Toggle graph on or off
