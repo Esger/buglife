@@ -24,6 +24,8 @@ $(function () {
         gogogo = null,
         speedHandle = null,
         speed = 0,
+        cellNutritionValue = 3,
+        stepEnergy = 1,
         bugs = [];
 
     // Set some variables
@@ -173,6 +175,22 @@ $(function () {
         }
     }
 
+    // Check if a liveCell is 'in' a bug, if so, feed the bug
+    function eaten(x, y) {
+        var thisBug;
+        function inCircle(x, y, bug) {
+            return ((Math.pow(x - bug.x, 2) + Math.pow(y - bug.y, 2)) < Math.pow(bug.radius, 2));
+        }
+        for (var count in bugs) {
+            thisBug = bugs[count];
+            if (inCircle(x, y, thisBug)) {
+                thisBug.feed();
+                return true;
+            }
+        }
+        return false;
+    }
+
     // Evaluate neighbourscounts for new livecells
     function evalNeighbours() {
         var count, thisx, thisy;
@@ -180,7 +198,9 @@ $(function () {
         function livecell() {
             thisy = Math.floor(count / spaceWidth);
             thisx = count - (thisy * spaceWidth);
-            liveCells.push(new celXY(thisx, thisy));
+            if (!eaten(thisx, thisy)) {
+                liveCells.push(new celXY(thisx, thisy));
+            }
         }
 
         liveCells = [];
@@ -199,7 +219,7 @@ $(function () {
             thisBug = bugs[count];
             ctx.fillStyle = (thisBug.gender == 1) ? "rgba(128,0,0,0.5)" : "rgba(0,0,128,0.5)";
             ctx.beginPath();
-            ctx.arc(thisBug.x, thisBug.y, thisBug.radius, 0, 2 * Math.PI);
+            ctx.arc(thisBug.x, thisBug.y, thisBug.radius * cellSize, 0, 2 * Math.PI);
             ctx.fill();
             thisBug.move();
         }
@@ -207,14 +227,18 @@ $(function () {
 
     function addRandomBug() {
         var bug = {
-            radius: 3,
+            radius: 2,
             x: Math.floor(Math.random() * spaceWidth) * cellSize,
             y: Math.floor(Math.random() * spaceHeight) * cellSize,
             direction: Math.floor(Math.random() * 8) * 0.125 * 2 * Math.PI,
             gender: Math.floor(Math.random() * 2),
             move: function () {
-                this.x = (this.x + cellSize * Math.cos(this.direction) + canvas.width) % (canvas.width);
-                this.y = (this.y + cellSize * Math.sin(this.direction) + canvas.height) % (canvas.height);
+                this.x = (this.x + Math.cos(this.direction) + canvas.width) % (canvas.width);
+                this.y = (this.y + Math.sin(this.direction) + canvas.height) % (canvas.height);
+                this.radius = Math.sqrt(Math.pow(this.radius, 2) - stepEnergy / (2 * Math.PI));
+            },
+            feed: function () {
+                this.radius = Math.sqrt(Math.pow(this.radius, 2) + cellNutritionValue / (2 * Math.PI));
             }
         }
         bugs.push(bug);
