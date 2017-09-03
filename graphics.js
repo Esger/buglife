@@ -1,20 +1,20 @@
 // JavaScript Document
 $(function () {
     var canvas = document.getElementById('thetoroid'), // The canvas where life is drawn
-        graphcanvas = document.getElementById('thegraph'), // The canvas where the graph is drawn
+        graphCanvas = document.getElementById('thegraph'), // The canvas where the graph is drawn
         showGraph = false,
         $teller = $('#teller'),
         $cellsAlive = $('#cellsalive'),
         $speed = $('#speed'),
-        cellsize = parseInt($('input[name=cellsizer]:checked').val(), 10), // Width and heigth of a cell in pixels
-        spacewidth = (canvas.width / cellsize),
-        spaceheight = (canvas.height / cellsize),
-        numbercells = spacewidth * spaceheight, // Number of available cells
-        livecells, // Array with x,y coordinates of living cells
-        fillratio = 20, // Percentage of available cells that will be set alive initially
-        startnumberlivecells = numbercells * fillratio / 100,
-        yscale = 3 * graphcanvas.height / numbercells, //Ratio to apply values on y-axis
-        cellsalive, // Number of cells alive
+        cellSize = parseInt($('input[name=cellsizer]:checked').val(), 10), // Width and heigth of a cell in pixels
+        spaceWidth = (canvas.width / cellSize),
+        spaceHeight = (canvas.height / cellSize),
+        numberCells = spaceWidth * spaceHeight, // Number of available cells
+        liveCells, // Array with x,y coordinates of living cells
+        fillRatio = 20, // Percentage of available cells that will be set alive initially
+        startnumberLivecells = numberCells * fillRatio / 100,
+        yScale = 3 * graphCanvas.height / numberCells, //Ratio to apply values on y-axis
+        cellsAlive, // Number of cells alive
         neighbours, // Array with neighbours count
         steps = 0, // Number of iterations / steps done
         prevSteps = 0,
@@ -27,23 +27,23 @@ $(function () {
         bugs = [];
 
     // Set some variables
-    function setspace() {
-        cellsize = parseInt($('input[name=cellsizer]:checked').val(), 10); //Must be even or 1
-        spacewidth = (canvas.width / cellsize);
-        spaceheight = (canvas.height / cellsize);
-        numbercells = spacewidth * spaceheight;
-        startnumberlivecells = numbercells * fillratio / 100;
-        cellsalive = startnumberlivecells;
+    function setSpace() {
+        cellSize = parseInt($('input[name=cellsizer]:checked').val(), 10); //Must be even or 1
+        spaceWidth = (canvas.width / cellSize);
+        spaceHeight = (canvas.height / cellSize);
+        numberCells = spaceWidth * spaceHeight;
+        startnumberLivecells = numberCells * fillRatio / 100;
+        cellsAlive = startnumberLivecells;
     }
 
     // Empty the arrays to get ready for restart.
-    function initarrays() {
-        livecells = [];
+    function initArrays() {
+        liveCells = [];
         neighbours = [];
         bugs = [];
     }
 
-    function initliferules() {
+    function initLiferules() {
         var count;
         var $checkbox;
         for (count = 0; count < 10; count++) {
@@ -65,35 +65,35 @@ $(function () {
     }
 
     // Erase the canvas
-    function clearspace() {
+    function clearSpace() {
         var ctx = canvas.getContext('2d');
         ctx.fillStyle = "rgb(255, 255, 255)";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
 
     // Erase the graph
-    function cleargraph() {
-        var ctx = graphcanvas.getContext('2d');
+    function clearGraph() {
+        var ctx = graphCanvas.getContext('2d');
         ctx.fillStyle = "rgb(255, 255, 255)";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
 
     // Put new pair of values in array
-    function Celxy(x, y) {
+    function celXY(x, y) {
         this.x = x;
         this.y = y;
     }
 
     // Fill livecells with random cellxy's
-    function fillrandom() {
+    function fillRandom() {
         var count;
-        for (count = 0; count < startnumberlivecells; count++) {
-            livecells[count] = new Celxy(Math.floor(Math.random() * spacewidth), Math.floor(Math.random() * spaceheight));
+        for (count = 0; count < startnumberLivecells; count++) {
+            liveCells[count] = new celXY(Math.floor(Math.random() * spaceWidth), Math.floor(Math.random() * spaceHeight));
         }
     }
 
     // Fade the old screen a bit to white
-    function fadeall() {
+    function fadeAll() {
         var ctx = canvas.getContext('2d');
         if ($('.trails').is(":checked")) {
             ctx.fillStyle = "rgba(255, 255, 255, 0.05)";
@@ -104,37 +104,37 @@ $(function () {
     }
 
     // Fade the old graph a bit to white
-    function fadegraph() {
-        var ctx = graphcanvas.getContext('2d');
+    function fadeGraph() {
+        var ctx = graphCanvas.getContext('2d');
         ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
-        ctx.fillRect(0, 0, graphcanvas.width, graphcanvas.height);
+        ctx.fillRect(0, 0, graphCanvas.width, graphCanvas.height);
     }
 
     // Draw the array with livecells
-    function drawcells() {
+    function drawCells() {
         var ctx = canvas.getContext('2d');
         var count;
         ctx.fillStyle = "rgb(128, 128, 0)";
-        for (count in livecells) {
-            ctx.fillRect(livecells[count].x * cellsize, livecells[count].y * cellsize, cellsize, cellsize);
+        for (count in liveCells) {
+            ctx.fillRect(liveCells[count].x * cellSize, liveCells[count].y * cellSize, cellSize, cellSize);
         }
-        cellsalive = livecells.length;
+        cellsAlive = liveCells.length;
     }
 
     // Fill livecells with your own mouse drawing
-    $('#thetoroid').click(function (event) {
-        mouseX = Math.floor((event.offsetX ? (event.offsetX) : event.pageX - this.offsetLeft) / cellsize);
-        mouseY = Math.floor((event.offsetY ? (event.offsetY) : event.pageY - this.offsetTop) / cellsize);
-        livecells[livecells.length] = new Celxy(mouseX, mouseY);
-        drawcells();
-        updatedata();
+    $('#thetoroid').on('click', function (event) {
+        mouseX = Math.floor((event.offsetX ? (event.offsetX) : event.pageX - this.offsetLeft) / cellSize);
+        mouseY = Math.floor((event.offsetY ? (event.offsetY) : event.pageY - this.offsetTop) / cellSize);
+        liveCells[liveCells.length] = new celXY(mouseX, mouseY);
+        drawCells();
+        updateData();
     });
 
     // Draw the array with livecells
-    function drawgraph() {
-        var ctx = graphcanvas.getContext('2d');
+    function drawGraph() {
+        var ctx = graphCanvas.getContext('2d');
         ctx.fillStyle = "rgb(128, 128, 0)";
-        ctx.fillRect(steps % graphcanvas.width, graphcanvas.height - cellsalive * yscale, 1, 1);
+        ctx.fillRect(steps % graphCanvas.width, graphCanvas.height - cellsAlive * yScale, 1, 1);
     }
 
     // Calculate generations per second
@@ -144,77 +144,108 @@ $(function () {
     }
 
     // Update the counter
-    function updatedata() {
+    function updateData() {
         $teller.text(steps);
-        $cellsAlive.text(cellsalive);
+        $cellsAlive.text(cellsAlive);
         $speed.text(speed);
     }
 
     // Set all neighbours to zero
-    function zeroneighbours() {
+    function zeroNeighbours() {
         var count;
-        for (count = 0; count < numbercells; count++) {
+        for (count = 0; count < numberCells; count++) {
             neighbours[count] = 0;
         }
     }
 
     // Tell neighbours around livecells they have a neighbour
-    function countneighbours() {
+    function countNeighbours() {
         var count, thisx, thisy, dx, dy;
-        for (count in livecells) {
-            thisx = livecells[count].x;
-            thisy = livecells[count].y;
+        for (count in liveCells) {
+            thisx = liveCells[count].x;
+            thisy = liveCells[count].y;
             for (dy = -1; dy < 2; dy++) {
                 for (dx = -1; dx < 2; dx++) {
-                    neighbours[((thisy + dy) * spacewidth + thisx + dx + numbercells) % numbercells]++;
+                    neighbours[((thisy + dy) * spaceWidth + thisx + dx + numberCells) % numberCells]++;
                 }
             }
-            neighbours[thisy * spacewidth + thisx] += 9;
+            neighbours[thisy * spaceWidth + thisx] += 9;
         }
     }
 
     // Evaluate neighbourscounts for new livecells
-    function evalneighbours() {
+    function evalNeighbours() {
         var count, thisx, thisy;
 
         function livecell() {
-            thisy = Math.floor(count / spacewidth);
-            thisx = count - (thisy * spacewidth);
-            livecells.push(new Celxy(thisx, thisy));
+            thisy = Math.floor(count / spaceWidth);
+            thisx = count - (thisy * spaceWidth);
+            liveCells.push(new celXY(thisx, thisy));
         }
 
-        livecells = [];
-        for (count = 0; count < numbercells; count++) {
+        liveCells = [];
+        for (count = 0; count < numberCells; count++) {
             if (liferules[neighbours[count]]) {
                 livecell();
             }
         }
     }
 
+    // Draw the bugs
+    function drawBugs() {
+        var ctx = canvas.getContext('2d');
+        var thisBug;
+        for (var count in bugs) {
+            thisBug = bugs[count];
+            ctx.fillStyle = (thisBug.gender == 1) ? "rgba(128,0,0,0.5)" : "rgba(0,0,128,0.5)";
+            ctx.beginPath();
+            ctx.arc(thisBug.x, thisBug.y, thisBug.radius, 0, 2 * Math.PI);
+            ctx.fill();
+            thisBug.move();
+        }
+    }
+
+    function addRandomBug() {
+        var bug = {
+            radius: 3,
+            x: Math.floor(Math.random() * spaceWidth) * cellSize,
+            y: Math.floor(Math.random() * spaceHeight) * cellSize,
+            direction: Math.floor(Math.random() * 8) * 0.125 * 2 * Math.PI,
+            gender: Math.floor(Math.random() * 2),
+            move: function () {
+                this.x = (this.x + cellSize * Math.cos(this.direction) + canvas.width) % (canvas.width);
+                this.y = (this.y + cellSize * Math.sin(this.direction) + canvas.height) % (canvas.height);
+            }
+        }
+        bugs.push(bug);
+        console.log(bugs);
+    }
+
     // Animation function
     function animateShape() {
         steps += 1;
-        zeroneighbours();
-        countneighbours();
-        evalneighbours();
-        fadeall();
-        drawcells();
+        zeroNeighbours();
+        countNeighbours();
+        evalNeighbours();
+        fadeAll();
+        drawCells();
+        drawBugs();
         if (showGraph) {
-            drawgraph();
+            drawGraph();
         }
-        updatedata();
+        updateData();
     }
 
-    function firststep() {
+    function firstStep() {
         if (canvas.getContext) {
-            setspace();
-            yscale = 3 * graphcanvas.height / numbercells;
-            initarrays();
-            initliferules();
-            clearspace();
-            fillrandom();
-            drawcells();
-            fadegraph();
+            setSpace();
+            yScale = 3 * graphCanvas.height / numberCells;
+            initArrays();
+            initLiferules();
+            clearSpace();
+            fillRandom();
+            drawCells();
+            fadeGraph();
         } else {
             // canvas-unsupported code here
             document.write("If you see this, you&rsquo;d better install Firefox or Chrome or Opera or Safari or &hellip;");
@@ -223,16 +254,16 @@ $(function () {
 
     // Set space dimensions when user chooses other cellsize
     $('form .cellsizer').change(function () {
-        setspace();
-        clearspace();
-        drawcells();
+        setSpace();
+        clearSpace();
+        drawCells();
     });
 
     // Do one life step
     function steplife() {
         animateShape();
     }
-    $('#stepbutton').click(function () {
+    $('#stepbutton').on('click', function () {
         steplife();
     });
     shortcut.add("right", function () {
@@ -250,71 +281,71 @@ $(function () {
     }
 
     // Start life animation
-    function startlife() {
+    function startLife() {
         $('.trails').attr('checked', true);
         if (running === false) {
             setIntervals();
         }
         running = true;
     }
-    $('#startbutton').click(function () {
-        startlife();
+    $('#startbutton').on('click', function () {
+        startLife();
     });
     shortcut.add("up", function () {
-        startlife();
+        startLife();
     });
 
     // Show start button again after user clicked stopbutton
-    function stoplife() {
+    function stopLife() {
         clearIntervals();
         running = false;
     }
-    $('#stopbutton').click(function () {
-        stoplife();
+    $('#stopbutton').on('click', function () {
+        stopLife();
     });
     shortcut.add("down", function () {
-        stoplife();
+        stopLife();
     });
 
     // Restart everything when user clicks restart button
-    function restartlife() {
+    function restartLife() {
         if (running === true) {
             clearIntervals();
         }
         running = false;
         steps = 0;
         prevSteps = 0;
-        firststep();
+        firstStep();
         $('.trails').attr('checked', true);
         if (running === false) {
             setIntervals();
         }
         running = true;
     }
-    $('#randombutton').click(function () {
-        restartlife();
+    $('#randombutton').on('click', function () {
+        restartLife();
     });
     shortcut.add("return", function () {
-        restartlife();
+        restartLife();
     });
 
     // Clear the canvas (in order to draw manually on it)
-    function clearlife() {
+    function clearLife() {
         if (running === true) {
             clearIntervals();
         }
         running = false;
         steps = 0;
-        setspace();
-        initarrays();
-        clearspace();
-        updatedata();
+        setSpace();
+        initArrays();
+        clearSpace();
+        updateData();
     }
-    $('#clearbutton').click(function () {
-        clearlife();
+    $('#clearbutton').on('click', function () {
+        clearLife();
     });
     shortcut.add("delete", function () {
-        clearlife();
+        clearLife();
     });
 
     // Toggle trails on or off
@@ -326,27 +357,33 @@ $(function () {
         }
     });
 
+    // Add a bug
+    $('#bugbutton').on('click', function () {
+        console.log('add bug');
+        addRandomBug();
+    });
+
     // Toggle graph on or off
-    $('#graphtoggler').click(function () {
+    $('#graphtoggler').on('click', function () {
         showGraph = !showGraph;
         $('#thegraph').toggle('slow');
     });
 
     // Toggle liferules checkboxes on or off
-    $('#rulestoggler').click(function () {
+    $('#rulestoggler').on('click', function () {
         $('#liferules').toggle('slow');
     });
 
     // Toggle text on or off
-    $('#texttoggler').click(function () {
+    $('#texttoggler').on('click', function () {
         $('#story').toggle('slow');
     });
 
-    $('#liferules input').click(function () {
-        initliferules();
+    $('#liferules input').on('click', function () {
+        initLiferules();
     });
 
-    firststep();
+    firstStep();
     if (running === false) {
         setIntervals();
     }

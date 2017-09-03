@@ -162,6 +162,12 @@ canvas {
     background-position: -50px -125px;
 }
 
+#controls #bugbutton {
+    width           : auto;
+    float           : right;
+    background-image: none;
+}
+
 #controls a.toggler, #data a.toggler {
     width           : auto;
     float           : right;
