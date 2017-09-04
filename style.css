@@ -90,6 +90,11 @@ canvas {
     font-size: 12px;
 }
 
+#bugdata td {
+    padding-right: 10px;
+    text-align   : right;
+}
+
 #story {
     width: 700px;
 }

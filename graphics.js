@@ -6,11 +6,12 @@ $(function () {
         $teller = $('#teller'),
         $cellsAlive = $('#cellsalive'),
         $speed = $('#speed'),
-        cellSize = parseInt($('input[name=cellsizer]:checked').val(), 10), // Width and heigth of a cell in pixels
+        $bugData = $('#bugData table'),
+        cellSize = 1, // Width and heigth of a cell in pixels
         spaceWidth = (canvas.width / cellSize),
         spaceHeight = (canvas.height / cellSize),
         numberCells = spaceWidth * spaceHeight, // Number of available cells
-        liveCells, // Array with x,y coordinates of living cells
+        liveCells = [], // Array with x,y coordinates of living cells
         fillRatio = 20, // Percentage of available cells that will be set alive initially
         startnumberLivecells = numberCells * fillRatio / 100,
         yScale = 3 * graphCanvas.height / numberCells, //Ratio to apply values on y-axis
@@ -25,12 +26,14 @@ $(function () {
         speedHandle = null,
         speed = 0,
         cellNutritionValue = 3,
-        stepEnergy = 1,
-        bugs = [];
+        stepEnergy = 2,
+        minBugFat = 10,
+        bugs = [],
+        deadBugCells = [];
+
 
     // Set some variables
     function setSpace() {
-        cellSize = parseInt($('input[name=cellsizer]:checked').val(), 10); //Must be even or 1
         spaceWidth = (canvas.width / cellSize);
         spaceHeight = (canvas.height / cellSize);
         numberCells = spaceWidth * spaceHeight;
@@ -41,6 +44,7 @@ $(function () {
     // Empty the arrays to get ready for restart.
     function initArrays() {
         liveCells = [];
+        deadBugCells = [];
         neighbours = [];
         bugs = [];
     }
@@ -127,7 +131,7 @@ $(function () {
     $('#thetoroid').on('click', function (event) {
         mouseX = Math.floor((event.offsetX ? (event.offsetX) : event.pageX - this.offsetLeft) / cellSize);
         mouseY = Math.floor((event.offsetY ? (event.offsetY) : event.pageY - this.offsetTop) / cellSize);
-        liveCells[liveCells.length] = new celXY(mouseX, mouseY);
+        liveCells.push(new celXY(mouseX, mouseY));
         drawCells();
         updateData();
     });
@@ -215,6 +219,7 @@ $(function () {
     function drawBugs() {
         var ctx = canvas.getContext('2d');
         var thisBug;
+        var deadBugs = [];
         for (var count in bugs) {
             thisBug = bugs[count];
             ctx.fillStyle = (thisBug.gender == 1) ? "rgba(128,0,0,0.5)" : "rgba(0,0,128,0.5)";
@@ -222,34 +227,91 @@ $(function () {
             ctx.arc(thisBug.x, thisBug.y, thisBug.radius * cellSize, 0, 2 * Math.PI);
             ctx.fill();
             thisBug.move();
+            if (!thisBug.alive) {
+                deadBugs.push(count);
+            }
+        }
+        for (var i in deadBugs) {
+            bugs.splice(deadBugs[i], 1);
         }
     }
 
-    function addRandomBug(amount) {
-        function bug() {
-            return {
-                radius: 2,
-                x: Math.floor(Math.random() * spaceWidth) * cellSize,
-                y: Math.floor(Math.random() * spaceHeight) * cellSize,
-                direction: Math.floor(Math.random() * 8) * 0.125 * 2 * Math.PI,
-                turnProbability: Math.random(),
-                turnDirection: function () {
-                    return (Math.random() > .5) ? 1 : -1;
-                },
-                gender: Math.floor(Math.random() * 2),
-                move: function () {
-                    this.x = (this.x + Math.cos(this.direction) + canvas.width) % (canvas.width);
-                    this.y = (this.y + Math.sin(this.direction) + canvas.height) % (canvas.height);
-                    this.radius = Math.sqrt(Math.pow(this.radius, 2) - stepEnergy / (2 * Math.PI));
-                },
-                feed: function () {
-                    this.direction = (Math.random() < this.turnProbability) ? this.direction + this.turnDirection() * 0.125 : this.direction,
-                        this.radius = Math.sqrt(Math.pow(this.radius, 2) + cellNutritionValue / (2 * Math.PI));
+    function xWrap(x) {
+        return Math.floor((x + canvas.width) % canvas.width);
+    }
+
+    function yWrap(y) {
+        return Math.floor((y + canvas.height) % canvas.height);
+    }
+
+    function fixedDecimals(num, dec) {
+        return parseFloat(num).toFixed(dec);
+    }
+
+    function randomBug() {
+        return {
+            id: Math.floor(Math.random() * 1000000),
+            fat: 25,
+            radius: 2,
+            alive: true,
+            x: Math.floor(Math.random() * spaceWidth) * cellSize,
+            y: Math.floor(Math.random() * spaceHeight) * cellSize,
+            direction: Math.floor(Math.random() * 8) * 0.125 * 2 * Math.PI,
+            turnProbability: Math.random(),
+            turnDirection: function () {
+                return (Math.random() > .5) ? 1 : -1;
+            },
+            gender: Math.floor(Math.random() * 2),
+            move: function () {
+                this.x = xWrap(this.x + Math.cos(this.direction));
+                this.y = yWrap(this.y + Math.sin(this.direction));
+                this.fat -= stepEnergy;
+                this.radius = Math.ceil(Math.sqrt(this.fat / (2 * Math.PI)));
+                if (this.fat < minBugFat) {
+                    this.die();
+                }
+                this.showData();
+            },
+            feed: function () {
+                if (this.alive) {
+                    this.direction = (Math.random() < this.turnProbability) ? this.direction + this.turnDirection() * 0.125 : this.direction;
+                    this.fat += cellNutritionValue;
+                }
+            },
+            showData: function () {
+                var $tr = $('<tr id="bug' + this.id + '"></tr>');
+                var $oldTr = $('#bug' + this.id);
+                $tr.append('<td>' + this.id + '</td>');
+                $tr.append('<td>' + this.alive + '</td>');
+                $tr.append('<td>' + this.gender + '</td>');
+                $tr.append('<td>' + this.fat + '</td>');
+                $tr.append('<td>' + this.radius + '</td>');
+                $tr.append('<td>' + fixedDecimals(this.direction, 2) + '</td>');
+                $tr.append('<td>' + fixedDecimals(this.turnProbability, 2) + '</td>');
+                $tr.append('<td>' + this.turnDirection() + '</td>');
+                if ($oldTr.length) {
+                    $oldTr.replaceWith($tr)
+                } else {
+                    $bugData.append($tr);
+                }
+            },
+            die: function () {
+                var r, angle, x, y;
+                this.alive = false;
+                for (var i = 0; i < 100; i++) {
+                    r = Math.random() * 100;
+                    angle = Math.random() * 2 * Math.PI;
+                    x = xWrap(this.x + Math.cos(angle) * r);
+                    y = yWrap(this.y + Math.sin(angle) * r);
+                    deadBugCells.push(new celXY(x, y));
                 }
             }
         }
+    }
+
+    function addBugs(amount) {
         for (var count = 0; count < amount; count++) {
-            bugs.push(bug());
+            bugs.push(randomBug());
         }
         console.log(bugs);
     }
@@ -257,6 +319,10 @@ $(function () {
     // Animation function
     function animateShape() {
         steps += 1;
+        if (deadBugCells.length) {
+            liveCells = liveCells.concat(deadBugCells);
+            deadBugCells = [];
+        }
         zeroNeighbours();
         countNeighbours();
         evalNeighbours();
@@ -278,7 +344,7 @@ $(function () {
             clearSpace();
             fillRandom();
             drawCells();
-            addRandomBug(20);
+            addBugs(10);
             drawBugs();
             fadeGraph();
         } else {
@@ -286,13 +352,6 @@ $(function () {
             document.write("If you see this, you&rsquo;d better install Firefox or Chrome or Opera or Safari or &hellip;");
         }
     }
-
-    // Set space dimensions when user chooses other cellsize
-    $('form .cellsizer').change(function () {
-        setSpace();
-        clearSpace();
-        drawCells();
-    });
 
     // Do one life step
     function steplife() {
@@ -395,7 +454,7 @@ $(function () {
     // Add a bug
     $('#bugbutton').on('click', function () {
         console.log('add bug');
-        addRandomBug(1);
+        addBugs(1);
     });
 
     // Toggle graph on or off
@@ -420,8 +479,7 @@ $(function () {
 
     firstStep();
     if (running === false) {
-        setIntervals();
+        // startLife();
     }
-    running = true;
 
 });	

@@ -53,11 +53,6 @@
                 <a href="#"
                    id="randombutton"
                    title="Random"></a>
-                <label>Cell size:</label>
-                <label><input class="cellsizer" type="radio" name="cellsizer" value="1" checked /> 1</label>
-                <label><input class="cellsizer" type="radio" name="cellsizer" value="2" /> 2</label>
-                <label><input class="cellsizer" type="radio" name="cellsizer" value="4" /> 4</label>
-                <label><input class="cellsizer" type="radio" name="cellsizer" value="8" /> 8</label>
                 <label><input class="trails" type="checkbox" checked /> Trails</label>
                 <a href="#"
                    id="bugbutton"
@@ -159,6 +154,22 @@
                class="toggler r">Text on/off</a>
             <p>Generations (x-axis): <span id="teller">0</span> - Live cells (y-axis): <span id="cellsalive">0</span> -
                 <span id="speed">0</span> generations/sec.</p>
+        </div>
+        <div id="bugData">
+            <table>
+                <thead>
+                    <tr>
+                        <td>Id</td>
+                        <td>Alive</td>
+                        <td>Gender</td>
+                        <td>Fat</td>
+                        <td>Radius</td>
+                        <td>Direction</td>
+                        <td>turnProb.</td>
+                        <td>turnDir.</td>
+                    </tr>
+                </thead>
+            </table>
         </div>
         <div id="story"
              class="hidden">
