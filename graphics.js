@@ -12,7 +12,7 @@ $(function () {
         spaceHeight = (canvas.height / cellSize),
         numberCells = spaceWidth * spaceHeight, // Number of available cells
         liveCells = [], // Array with x,y coordinates of living cells
-        fillRatio = 20, // Percentage of available cells that will be set alive initially
+        fillRatio = 0, // Percentage of available cells that will be set alive initially (20)
         startnumberLivecells = numberCells * fillRatio / 100,
         yScale = 3 * graphCanvas.height / numberCells, //Ratio to apply values on y-axis
         cellsAlive, // Number of cells alive
@@ -25,11 +25,21 @@ $(function () {
         gogogo = null,
         speedHandle = null,
         speed = 0,
+
+        startBugsCount = 1,
         cellNutritionValue = 3,
-        stepEnergy = 2,
-        minBugFat = 10,
+        stepEnergy = 0,
+        minBugFat = 50,
+        graveRadius = 100,
+        graveMultiplier = 20,
         bugs = [],
-        deadBugCells = [];
+        deadBugCells = [],
+        walkers = [
+            [[-1, -1], [0, -1], [1, -1], [1, 0], [0, 1]],
+            [[1, -1], [-1, 0], [1, 0], [0, 1], [1, 1]],
+            [[0, -1], [-1, 0], [-1, 1], [0, 1], [1, 1]],
+            [[-1, -1], [0, -1], [-1, 0], [1, 0], [-1, 1]]
+        ];
 
 
     // Set some variables
@@ -47,6 +57,7 @@ $(function () {
         deadBugCells = [];
         neighbours = [];
         bugs = [];
+        $bugData.find('tbody tr').remove();
     }
 
     function initLiferules() {
@@ -226,9 +237,11 @@ $(function () {
             ctx.beginPath();
             ctx.arc(thisBug.x, thisBug.y, thisBug.radius * cellSize, 0, 2 * Math.PI);
             ctx.fill();
-            thisBug.move();
-            if (!thisBug.alive) {
+            if (thisBug.alive) {
+                thisBug.move();
+            } else {
                 deadBugs.push(count);
+                thisBug.die();
             }
         }
         for (var i in deadBugs) {
@@ -237,23 +250,27 @@ $(function () {
     }
 
     function xWrap(x) {
-        return Math.floor((x + canvas.width) % canvas.width);
+        return Math.round((x + canvas.width) % canvas.width);
     }
 
     function yWrap(y) {
-        return Math.floor((y + canvas.height) % canvas.height);
+        return Math.round((y + canvas.height) % canvas.height);
     }
 
     function fixedDecimals(num, dec) {
         return parseFloat(num).toFixed(dec);
     }
 
+    function fatToRadius(fat) {
+        return (fat > 0) ? Math.ceil(Math.sqrt(fat / (2 * Math.PI))) : 0;
+    }
+
     function randomBug() {
         return {
             id: Math.floor(Math.random() * 1000000),
-            fat: 25,
-            radius: 2,
+            fat: 2 * minBugFat,
             alive: true,
+            steps: 0,
             x: Math.floor(Math.random() * spaceWidth) * cellSize,
             y: Math.floor(Math.random() * spaceHeight) * cellSize,
             direction: Math.floor(Math.random() * 8) * 0.125 * 2 * Math.PI,
@@ -262,21 +279,47 @@ $(function () {
                 return (Math.random() > .5) ? 1 : -1;
             },
             gender: Math.floor(Math.random() * 2),
+            remnantCells: minBugFat,
+            radius: fatToRadius(this.remnantCells),
+            poopFrequency: Math.floor(Math.random() * 10 + 10),
             move: function () {
-                this.x = xWrap(this.x + Math.cos(this.direction));
-                this.y = yWrap(this.y + Math.sin(this.direction));
-                this.fat -= stepEnergy;
-                this.radius = Math.ceil(Math.sqrt(this.fat / (2 * Math.PI)));
-                if (this.fat < minBugFat) {
-                    this.die();
+                if (this.fat < this.remnantCells) {
+                    this.alive = false;
+                } else {
+                    this.x = xWrap(this.x + Math.cos(this.direction));
+                    this.y = yWrap(this.y + Math.sin(this.direction));
+                    this.fat -= stepEnergy;
+                    this.radius = fatToRadius(this.fat);
+                    this.steps++;
+                    if (this.steps % this.poopFrequency) {
+                        this.poop();
+                    }
+                    this.direction = (Math.random() < this.turnProbability) ? this.direction + this.turnDirection() * 0.125 : this.direction;
                 }
                 this.showData();
             },
             feed: function () {
                 if (this.alive) {
-                    this.direction = (Math.random() < this.turnProbability) ? this.direction + this.turnDirection() * 0.125 : this.direction;
                     this.fat += cellNutritionValue;
                 }
+            },
+            poop: function () {
+                function addPooPosition(cell) {
+                    cell[0] = xWrap(cell[0] + poo.x + self.x);
+                    cell[1] = yWrap(cell[1] + poo.y + self.y);
+                    return cell;
+                }
+                var self = this,
+                    poo = {},
+                    cells = [];
+                poo.x = Math.round(Math.cos(this.direction + Math.PI) * (this.radius + 2));
+                poo.y = Math.round(Math.sin(this.direction + Math.PI) * (this.radius + 2));
+                cells = walkers[Math.floor(Math.random() * 4)].slice();
+                cells = cells.map(addPooPosition);
+
+                // Niet goed; moet met new celXY() of array van objecten met x,y toevoegen
+                // Posities kloppen niet.
+                // deadBugCells = deadBugCells.concat(cells);
             },
             showData: function () {
                 var $tr = $('<tr id="bug' + this.id + '"></tr>');
@@ -297,14 +340,15 @@ $(function () {
             },
             die: function () {
                 var r, angle, x, y;
-                this.alive = false;
-                for (var i = 0; i < 100; i++) {
-                    r = Math.random() * 100;
+                for (var i = this.fat * graveMultiplier; i > 0; i--) {
+                    r = Math.random() * graveRadius;
                     angle = Math.random() * 2 * Math.PI;
                     x = xWrap(this.x + Math.cos(angle) * r);
                     y = yWrap(this.y + Math.sin(angle) * r);
                     deadBugCells.push(new celXY(x, y));
                 }
+                this.fat = 0;
+                this.showData();
             }
         }
     }
@@ -344,7 +388,7 @@ $(function () {
             clearSpace();
             fillRandom();
             drawCells();
-            addBugs(10);
+            addBugs(startBugsCount);
             drawBugs();
             fadeGraph();
         } else {
@@ -479,7 +523,7 @@ $(function () {
 
     firstStep();
     if (running === false) {
-        // startLife();
+        startLife();
     }
 
 });	
