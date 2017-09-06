@@ -277,6 +277,7 @@ $(function () {
             turnDirection: function () {
                 return (Math.random() > .5) ? 1 : -1;
             },
+            hasTurned: false,
             gender: Math.floor(Math.random() * 2),
             remnantCells: minBugFat,
             radius: fatToRadius(this.remnantCells),
@@ -291,16 +292,22 @@ $(function () {
                     this.fat -= stepEnergy;
                     this.radius = Math.min(fatToRadius(this.fat), this.maxRadius);
                     this.steps++;
+                    this.hasTurned = false;
                     if (this.steps % this.poopFrequency == 0) {
                         this.poop();
                     }
-                    this.direction = (Math.random() < this.turnProbability) ? this.direction + this.turnDirection() * 0.125 : this.direction;
                 }
                 this.showData();
             },
             feed: function () {
                 if (this.alive) {
                     this.fat += cellNutritionValue;
+                    if (!this.hasTurned) {
+                        if (Math.random() < this.turnProbability) {
+                            this.direction += this.turnDirection() * 0.125
+                            this.hasTurned = true;
+                        }
+                    }
                 }
             },
             poop: function () {
@@ -318,23 +325,25 @@ $(function () {
                         deadBugCells.push(new celXY(cell[0], cell[1]));
                     }
                 }
-                // console.table(cells);
             },
             showData: function () {
-                var $tr = $('<tr id="bug' + this.id + '"></tr>');
                 var $oldTr = $('#bug' + this.id);
-                $tr.append('<td>' + this.id + '</td>');
-                $tr.append('<td>' + this.alive + '</td>');
-                $tr.append('<td>' + this.gender + '</td>');
-                $tr.append('<td>' + this.fat + '</td>');
-                $tr.append('<td>' + this.radius + '</td>');
-                $tr.append('<td>' + fixedDecimals(this.direction, 2) + '</td>');
-                $tr.append('<td>' + fixedDecimals(this.turnProbability, 2) + '</td>');
-                $tr.append('<td>' + this.turnDirection() + '</td>');
-                if ($oldTr.length) {
-                    $oldTr.replaceWith($tr)
+                if (this.alive) {
+                    var $tr = $('<tr id="bug' + this.id + '"></tr>');
+                    $tr.append('<td>' + this.id + '</td>');
+                    $tr.append('<td>' + this.gender + '</td>');
+                    $tr.append('<td>' + this.fat + '</td>');
+                    $tr.append('<td>' + this.radius + '</td>');
+                    $tr.append('<td>' + fixedDecimals(this.direction, 2) + '</td>');
+                    $tr.append('<td>' + fixedDecimals(this.turnProbability, 2) + '</td>');
+                    $tr.append('<td>' + this.turnDirection() + '</td>');
+                    if ($oldTr.length) {
+                        $oldTr.replaceWith($tr)
+                    } else {
+                        $bugData.append($tr);
+                    }
                 } else {
-                    $bugData.append($tr);
+                    $oldTr.remove();
                 }
             },
             die: function () {
@@ -356,7 +365,6 @@ $(function () {
         for (var count = 0; count < amount; count++) {
             bugs.push(randomBug());
         }
-        console.log(bugs);
     }
 
     // Animation function
@@ -496,7 +504,6 @@ $(function () {
 
     // Add a bug
     $('#bugbutton').on('click', function () {
-        console.log('add bug');
         addBugs(1);
     });
 
