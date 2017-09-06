@@ -1,5 +1,5 @@
-// JavaScript Document
 $(function () {
+
     var canvas = document.getElementById('thetoroid'), // The canvas where life is drawn
         graphCanvas = document.getElementById('thegraph'), // The canvas where the graph is drawn
         showGraph = false,
@@ -12,7 +12,7 @@ $(function () {
         spaceHeight = (canvas.height / cellSize),
         numberCells = spaceWidth * spaceHeight, // Number of available cells
         liveCells = [], // Array with x,y coordinates of living cells
-        fillRatio = 0, // Percentage of available cells that will be set alive initially (20)
+        fillRatio = 20, // Percentage of available cells that will be set alive initially (20)
         startnumberLivecells = numberCells * fillRatio / 100,
         yScale = 3 * graphCanvas.height / numberCells, //Ratio to apply values on y-axis
         cellsAlive, // Number of cells alive
@@ -26,9 +26,9 @@ $(function () {
         speedHandle = null,
         speed = 0,
 
-        startBugsCount = 1,
+        startBugsCount = 10,
         cellNutritionValue = 3,
-        stepEnergy = 0,
+        stepEnergy = 2,
         minBugFat = 50,
         graveRadius = 100,
         graveMultiplier = 20,
@@ -40,7 +40,6 @@ $(function () {
             [[0, -1], [-1, 0], [-1, 1], [0, 1], [1, 1]],
             [[-1, -1], [0, -1], [-1, 0], [1, 0], [-1, 1]]
         ];
-
 
     // Set some variables
     function setSpace() {
@@ -281,7 +280,8 @@ $(function () {
             gender: Math.floor(Math.random() * 2),
             remnantCells: minBugFat,
             radius: fatToRadius(this.remnantCells),
-            poopFrequency: Math.floor(Math.random() * 10 + 10),
+            maxRadius: 15,
+            poopFrequency: Math.floor(Math.random() * 40 + 10),
             move: function () {
                 if (this.fat < this.remnantCells) {
                     this.alive = false;
@@ -289,9 +289,9 @@ $(function () {
                     this.x = xWrap(this.x + Math.cos(this.direction));
                     this.y = yWrap(this.y + Math.sin(this.direction));
                     this.fat -= stepEnergy;
-                    this.radius = fatToRadius(this.fat);
+                    this.radius = Math.min(fatToRadius(this.fat), this.maxRadius);
                     this.steps++;
-                    if (this.steps % this.poopFrequency) {
+                    if (this.steps % this.poopFrequency == 0) {
                         this.poop();
                     }
                     this.direction = (Math.random() < this.turnProbability) ? this.direction + this.turnDirection() * 0.125 : this.direction;
@@ -304,22 +304,21 @@ $(function () {
                 }
             },
             poop: function () {
-                function addPooPosition(cell) {
-                    cell[0] = xWrap(cell[0] + poo.x + self.x);
-                    cell[1] = yWrap(cell[1] + poo.y + self.y);
-                    return cell;
-                }
                 var self = this,
                     poo = {},
                     cells = [];
                 poo.x = Math.round(Math.cos(this.direction + Math.PI) * (this.radius + 2));
                 poo.y = Math.round(Math.sin(this.direction + Math.PI) * (this.radius + 2));
-                cells = walkers[Math.floor(Math.random() * 4)].slice();
-                cells = cells.map(addPooPosition);
-
-                // Niet goed; moet met new celXY() of array van objecten met x,y toevoegen
-                // Posities kloppen niet.
-                // deadBugCells = deadBugCells.concat(cells);
+                cells = $.extend(true, {}, walkers[Math.floor(Math.random() * walkers.length)]);
+                for (var key in cells) {
+                    if (cells.hasOwnProperty(key)) {
+                        var cell = cells[key];
+                        cell[0] = xWrap(cell[0] + poo.x + self.x);
+                        cell[1] = yWrap(cell[1] + poo.y + self.y);
+                        deadBugCells.push(new celXY(cell[0], cell[1]));
+                    }
+                }
+                // console.table(cells);
             },
             showData: function () {
                 var $tr = $('<tr id="bug' + this.id + '"></tr>');
