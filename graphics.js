@@ -33,6 +33,16 @@ $(function () {
         graveRadius = 100,
         graveMultiplier = 20,
         bugs = [],
+        maleCount = function () {
+            return bugs.filter(function (value, i, bugs) {
+                return value.gender == 1;
+                // console.log(value, i, bugs);
+            }).length;
+        },
+        femaleCount = function () {
+            return bugs.length - maleCount();
+        },
+        bugsYscale,
         deadBugCells = [],
         walkers = [
             [[-1, -1], [0, -1], [1, -1], [1, 0], [0, 1]],
@@ -42,12 +52,14 @@ $(function () {
         ];
 
     // Set some variables
-    function setSpace() {
+    function initVariables() {
         spaceWidth = (canvas.width / cellSize);
         spaceHeight = (canvas.height / cellSize);
         numberCells = spaceWidth * spaceHeight;
         startnumberLivecells = numberCells * fillRatio / 100;
         cellsAlive = startnumberLivecells;
+        yScale = 3 * graphCanvas.height / numberCells;
+        bugsYscale = (maleCount() != Infinity) ? Math.floor(graphCanvas.height / maleCount()) : graphCanvas.height / 5;
     }
 
     // Empty the arrays to get ready for restart.
@@ -109,7 +121,7 @@ $(function () {
     }
 
     // Fade the old screen a bit to white
-    function fadeAll() {
+    function fadeCells() {
         var ctx = canvas.getContext('2d');
         if ($('.trails').is(":checked")) {
             ctx.fillStyle = "rgba(255, 255, 255, 0.05)";
@@ -137,20 +149,16 @@ $(function () {
         cellsAlive = liveCells.length;
     }
 
-    // Fill livecells with your own mouse drawing
-    $('#thetoroid').on('click', function (event) {
-        mouseX = Math.floor((event.offsetX ? (event.offsetX) : event.pageX - this.offsetLeft) / cellSize);
-        mouseY = Math.floor((event.offsetY ? (event.offsetY) : event.pageY - this.offsetTop) / cellSize);
-        liveCells.push(new celXY(mouseX, mouseY));
-        drawCells();
-        updateData();
-    });
-
     // Draw the array with livecells
     function drawGraph() {
         var ctx = graphCanvas.getContext('2d');
         ctx.fillStyle = "rgb(128, 128, 0)";
         ctx.fillRect(steps % graphCanvas.width, graphCanvas.height - cellsAlive * yScale, 1, 1);
+        ctx.fillStyle = (steps % 2 == 0) ? "rgba(128,0,0,0.3)" : "rgba(0,0,0)";
+        ctx.fillRect(steps % graphCanvas.width, graphCanvas.height - maleCount() * 10, 1, 1);
+        ctx.fillStyle = (steps % 2 == 0) ? "rgba(0,0,0)" : "rgba(0,0,128,0.3)";
+        ctx.fillStyle = "";
+        ctx.fillRect(steps % graphCanvas.width, graphCanvas.height - femaleCount() * 10, 1, 1);
     }
 
     // Calculate generations per second
@@ -402,20 +410,22 @@ $(function () {
         zeroNeighbours();
         countNeighbours();
         evalNeighbours();
-        fadeAll();
+        fadeCells();
         drawCells();
         avoidOthers();
         drawBugs();
         if (showGraph) {
             drawGraph();
         }
+        if (steps % canvas.width == 0) {
+            fadeGraph();
+        }
         updateData();
     }
 
     function firstStep() {
         if (canvas.getContext) {
-            setSpace();
-            yScale = 3 * graphCanvas.height / numberCells;
+            initVariables();
             initArrays();
             initLiferules();
             clearSpace();
@@ -508,7 +518,7 @@ $(function () {
         }
         running = false;
         steps = 0;
-        setSpace();
+        initVariables();
         initArrays();
         clearSpace();
         updateData();
@@ -552,6 +562,15 @@ $(function () {
 
     $('#liferules input').on('click', function () {
         initLiferules();
+    });
+
+    // Fill livecells with your own mouse drawing
+    $('#thetoroid').on('click', function (event) {
+        mouseX = Math.floor((event.offsetX ? (event.offsetX) : event.pageX - this.offsetLeft) / cellSize);
+        mouseY = Math.floor((event.offsetY ? (event.offsetY) : event.pageY - this.offsetTop) / cellSize);
+        liveCells.push(new celXY(mouseX, mouseY));
+        drawCells();
+        updateData();
     });
 
     firstStep();
