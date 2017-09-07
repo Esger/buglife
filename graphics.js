@@ -26,9 +26,9 @@ $(function () {
         speedHandle = null,
         speed = 0,
 
-        startBugsCount = 10,
+        startBugsCount = 20,
         cellNutritionValue = 3,
-        stepEnergy = 2,
+        stepEnergy = 1,
         minBugFat = 50,
         graveRadius = 100,
         graveMultiplier = 20,
@@ -225,13 +225,32 @@ $(function () {
         }
     }
 
+    // Let bugs avoid each other
+    function avoidOthers() {
+        for (var i = 0; i < bugs.length; i++) {
+            var thisBug = bugs[i];
+            var tempDirection = thisBug.direction;
+            for (var j = i + 1; j < bugs.length; j++) {
+                var thatBug = bugs[j];
+                var distance = Math.sqrt(Math.pow((thisBug.x - thatBug.x), 2) + Math.pow((thisBug.x - thatBug.x), 2));
+                var minDistance = thisBug.radius + thatBug.radius + 7;
+                if (distance < minDistance) {
+                    thisBug.direction = thatBug.direction + Math.PI / 4;
+                    thatBug.direction = tempDirection - Math.PI / 4;
+                    thisBug.hasTurned = true;
+                    thatBug.hasTurned = true;
+                }
+            }
+        }
+    }
+
     // Draw the bugs
     function drawBugs() {
         var ctx = canvas.getContext('2d');
         var thisBug;
         var deadBugs = [];
-        for (var count in bugs) {
-            thisBug = bugs[count];
+        for (var i = 0; i < bugs.length; i++) {
+            var thisBug = bugs[i];
             ctx.fillStyle = (thisBug.gender == 1) ? "rgba(128,0,0,0.5)" : "rgba(0,0,128,0.5)";
             ctx.beginPath();
             ctx.arc(thisBug.x, thisBug.y, thisBug.radius * cellSize, 0, 2 * Math.PI);
@@ -239,25 +258,27 @@ $(function () {
             if (thisBug.alive) {
                 thisBug.move();
             } else {
-                deadBugs.push(count);
+                deadBugs.push(i);
                 thisBug.die();
             }
-        }
-        for (var i in deadBugs) {
-            bugs.splice(deadBugs[i], 1);
-        }
-    }
 
-    function xWrap(x) {
-        return Math.round((x + canvas.width) % canvas.width);
-    }
-
-    function yWrap(y) {
-        return Math.round((y + canvas.height) % canvas.height);
+        }
+        for (var j = 0; j < deadBugs.length; j++) {
+            bugs.splice(deadBugs[j], 1);
+        }
     }
 
     function fixedDecimals(num, dec) {
-        return parseFloat(num).toFixed(dec);
+        var decimalFactor = Math.pow(10, dec);
+        return Math.round(num * decimalFactor) / decimalFactor;
+    }
+
+    function xWrap(x) {
+        return (x + canvas.width) % canvas.width;
+    }
+
+    function yWrap(y) {
+        return (y + canvas.height) % canvas.height;
     }
 
     function fatToRadius(fat) {
@@ -270,12 +291,13 @@ $(function () {
             fat: 2 * minBugFat,
             alive: true,
             steps: 0,
-            x: Math.floor(Math.random() * spaceWidth) * cellSize,
-            y: Math.floor(Math.random() * spaceHeight) * cellSize,
+            x: fixedDecimals((Math.random() * spaceWidth) * cellSize, 2),
+            y: fixedDecimals((Math.random() * spaceHeight) * cellSize, 2),
             direction: Math.floor(Math.random() * 8) * 0.125 * 2 * Math.PI,
             turnProbability: Math.random(),
+            turnAmount: Math.random() * Math.PI / 2,
             turnDirection: function () {
-                return (Math.random() > .5) ? 1 : -1;
+                return (Math.random() > Math.random()) ? 1 : -1;
             },
             hasTurned: false,
             gender: Math.floor(Math.random() * 2),
@@ -287,8 +309,8 @@ $(function () {
                 if (this.fat < this.remnantCells) {
                     this.alive = false;
                 } else {
-                    this.x = xWrap(this.x + Math.cos(this.direction));
-                    this.y = yWrap(this.y + Math.sin(this.direction));
+                    this.x = fixedDecimals(xWrap(this.x + Math.cos(this.direction)), 2);
+                    this.y = fixedDecimals(yWrap(this.y + Math.sin(this.direction)), 2);
                     this.fat -= stepEnergy;
                     this.radius = Math.min(fatToRadius(this.fat), this.maxRadius);
                     this.steps++;
@@ -303,10 +325,10 @@ $(function () {
                 if (this.alive) {
                     this.fat += cellNutritionValue;
                     if (!this.hasTurned) {
-                        if (Math.random() < this.turnProbability) {
-                            this.direction += this.turnDirection() * 0.125
-                            this.hasTurned = true;
-                        }
+                        // if (Math.random() < this.turnProbability) {
+                        this.direction = (this.direction + this.turnDirection() * this.turnAmount) % (Math.PI * 2);
+                        this.hasTurned = true;
+                        // }
                     }
                 }
             },
@@ -314,14 +336,14 @@ $(function () {
                 var self = this,
                     poo = {},
                     cells = [];
-                poo.x = Math.round(Math.cos(this.direction + Math.PI) * (this.radius + 2));
-                poo.y = Math.round(Math.sin(this.direction + Math.PI) * (this.radius + 2));
-                cells = $.extend(true, {}, walkers[Math.floor(Math.random() * walkers.length)]);
+                poo.x = Math.round(Math.cos(this.direction + Math.PI) * (this.radius + 2) + self.x);
+                poo.y = Math.round(Math.sin(this.direction + Math.PI) * (this.radius + 2) + self.y);
+                cells = $.extend(true, {}, walkers[Math.floor(Math.random() * walkers.length)]); // deep copy
                 for (var key in cells) {
                     if (cells.hasOwnProperty(key)) {
                         var cell = cells[key];
-                        cell[0] = xWrap(cell[0] + poo.x + self.x);
-                        cell[1] = yWrap(cell[1] + poo.y + self.y);
+                        cell[0] = xWrap(cell[0] + poo.x);
+                        cell[1] = yWrap(cell[1] + poo.y);
                         deadBugCells.push(new celXY(cell[0], cell[1]));
                     }
                 }
@@ -334,7 +356,10 @@ $(function () {
                     $tr.append('<td>' + this.gender + '</td>');
                     $tr.append('<td>' + this.fat + '</td>');
                     $tr.append('<td>' + this.radius + '</td>');
-                    $tr.append('<td>' + fixedDecimals(this.direction, 2) + '</td>');
+                    // $tr.append('<td>' + this.x + '</td>');
+                    // $tr.append('<td>' + this.y + '</td>');
+                    $tr.append('<td>' + fixedDecimals(this.direction / Math.PI, 2) + '</td>');
+                    $tr.append('<td>' + fixedDecimals(this.turnAmount / Math.PI, 2) + '</td>');
                     $tr.append('<td>' + fixedDecimals(this.turnProbability, 2) + '</td>');
                     $tr.append('<td>' + this.turnDirection() + '</td>');
                     if ($oldTr.length) {
@@ -349,10 +374,10 @@ $(function () {
             die: function () {
                 var r, angle, x, y;
                 for (var i = this.fat * graveMultiplier; i > 0; i--) {
-                    r = Math.random() * graveRadius;
+                    r = Math.random() * graveRadius + this.maxRadius;
                     angle = Math.random() * 2 * Math.PI;
-                    x = xWrap(this.x + Math.cos(angle) * r);
-                    y = yWrap(this.y + Math.sin(angle) * r);
+                    x = xWrap(Math.round(this.x + Math.cos(angle) * r));
+                    y = yWrap(Math.round(this.y + Math.sin(angle) * r));
                     deadBugCells.push(new celXY(x, y));
                 }
                 this.fat = 0;
@@ -379,6 +404,7 @@ $(function () {
         evalNeighbours();
         fadeAll();
         drawCells();
+        avoidOthers();
         drawBugs();
         if (showGraph) {
             drawGraph();
@@ -397,6 +423,7 @@ $(function () {
             drawCells();
             addBugs(startBugsCount);
             drawBugs();
+            updateData();
             fadeGraph();
         } else {
             // canvas-unsupported code here
