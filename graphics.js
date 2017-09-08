@@ -243,10 +243,12 @@ $(function () {
                 var distance = Math.sqrt(Math.pow((thisBug.x - thatBug.x), 2) + Math.pow((thisBug.x - thatBug.x), 2));
                 var minDistance = thisBug.radius + thatBug.radius + 7;
                 if (distance < minDistance) {
-                    if (thisBug.adult() && thatBug.adult()) {
+                    if (thisBug.adult() && thatBug.adult() && thisBug.gender !== thatBug.gender) {
                         thisBug.mating = true;
                         thatBug.mating = true;
-                        addBugs(1);
+                        giveBirth(thisBug, thatBug);
+                        thisBug.offspring++;
+                        thatBug.offspring++;
                         thisBug.fat -= minBugFat;
                         thatBug.fat -= minBugFat;
                     } else {
@@ -301,22 +303,45 @@ $(function () {
         return (fat > 0) ? Math.ceil(Math.sqrt(fat / (2 * Math.PI))) : 0;
     }
 
+    function randomSign() {
+        return (Math.random() > Math.random()) ? 1 : -1;
+    }
+
+    function random01() {
+        return Math.floor(Math.random() * 2);
+    }
+
+    function giveBirth(thisBug, thatBug) {
+        var center = {
+            x: xWrap(Math.round((thisBug.x + thatBug.x) / 2)),
+            y: yWrap(Math.round((thisBug.y + thatBug.y) / 2))
+        };
+        var strongestBug = (thisBug.fat > thatBug.fat) ? thisBug : thatBug;
+        var weakestBug = (thisBug.fat < thatBug.fat) ? thisBug : thatBug;
+        var newBornBug = new randomBug();
+        newBornBug.x = center.x + Math.random() * 100 + strongestBug.radius;
+        newBornBug.y = center.y + Math.random() * 100 + strongestBug.radius;
+        newBornBug.turnProbability = strongestBug.turnProbability + randomSign() * weakestBug.turnProbability / 10;
+        newBornBug.turnAmount = strongestBug.turnAmount + randomSign() * weakestBug.turnAmount / 10;
+        newBornBug.poopFrequency = strongestBug.poopFrequency + randomSign() * weakestBug.poopFrequency / 10;
+        bugs.push(newBornBug);
+    }
+
     function randomBug() {
         return {
-            id: Math.floor(Math.random() * 1000000),
+            id: Math.floor(Math.random() * 1000000000),
             fat: 2 * minBugFat,
             alive: true,
             steps: 0,
+            offspring: 0,
             x: fixedDecimals((Math.random() * spaceWidth) * cellSize, 2),
             y: fixedDecimals((Math.random() * spaceHeight) * cellSize, 2),
             direction: Math.floor(Math.random() * 8) * 0.125 * 2 * Math.PI,
             turnProbability: Math.random(),
             turnAmount: Math.random() * Math.PI / 2,
-            turnDirection: function () {
-                return (Math.random() > Math.random()) ? 1 : -1;
-            },
+            turnDirection: randomSign,
             hasTurned: false,
-            gender: Math.floor(Math.random() * 2),
+            gender: random01(),
             adult: function () {
                 return this.fat > adultFat;
             },
@@ -368,6 +393,7 @@ $(function () {
                     }
                 }
             },
+            // Uit object halen?
             showData: function () {
                 var $oldTr = $('#bug' + this.id);
                 if (this.alive) {
@@ -378,10 +404,10 @@ $(function () {
                     $tr.append('<td>' + this.radius + '</td>');
                     // $tr.append('<td>' + this.x + '</td>');
                     // $tr.append('<td>' + this.y + '</td>');
-                    $tr.append('<td>' + fixedDecimals(this.direction / Math.PI, 2) + '</td>');
+                    // $tr.append('<td>' + fixedDecimals(this.direction / Math.PI, 2) + '</td>');
                     $tr.append('<td>' + fixedDecimals(this.turnAmount / Math.PI, 2) + '</td>');
                     $tr.append('<td>' + fixedDecimals(this.turnProbability, 2) + '</td>');
-                    $tr.append('<td>' + this.turnDirection() + '</td>');
+                    $tr.append('<td>' + this.offspring + '</td>');
                     $tr.append('<td>' + this.steps + '</td>');
                     if ($oldTr.length) {
                         $oldTr.replaceWith($tr)
