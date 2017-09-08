@@ -14,7 +14,7 @@ $(function () {
         liveCells = [], // Array with x,y coordinates of living cells
         fillRatio = 20, // Percentage of available cells that will be set alive initially (20)
         startnumberLivecells = numberCells * fillRatio / 100,
-        yScale = 3 * graphCanvas.height / numberCells, //Ratio to apply values on y-axis
+        yScale = 5 * graphCanvas.height / numberCells, //Ratio to apply values on y-axis
         cellsAlive, // Number of cells alive
         neighbours, // Array with neighbours count
         steps = 0, // Number of iterations / steps done
@@ -28,7 +28,6 @@ $(function () {
 
         startBugsCount = 20,
         cellNutritionValue = 3,
-        stepEnergy = 1,
         minBugFat = 50,
         adultFat = 1000,
         graveRadius = 100,
@@ -59,7 +58,7 @@ $(function () {
         numberCells = spaceWidth * spaceHeight;
         startnumberLivecells = numberCells * fillRatio / 100;
         cellsAlive = startnumberLivecells;
-        yScale = 3 * graphCanvas.height / numberCells;
+        yScale = 5 * graphCanvas.height / numberCells;
         bugsYscale = (maleCount() != Infinity) ? Math.floor(graphCanvas.height / maleCount()) : graphCanvas.height / 5;
     }
 
@@ -152,13 +151,17 @@ $(function () {
 
     // Draw the array with livecells
     function drawGraph() {
-        var ctx = graphCanvas.getContext('2d');
-        ctx.fillStyle = "rgb(128, 128, 0)";
-        ctx.fillRect(steps % graphCanvas.width, graphCanvas.height - cellsAlive * yScale, 1, 1);
-        ctx.fillStyle = (steps % 2 == 0) ? "rgba(128,0,0,0.3)" : "rgba(0,0,0)";
-        ctx.fillRect(steps % graphCanvas.width, graphCanvas.height - maleCount() * 10, 1, 1);
-        ctx.fillStyle = (steps % 2 == 0) ? "rgba(0,0,0)" : "rgba(0,0,128,0.3)";
-        ctx.fillRect(steps % graphCanvas.width, graphCanvas.height - femaleCount() * 10, 1, 1);
+        var xScale = 2;
+        var scaledSteps = Math.round(steps / xScale);
+        if (steps % xScale == 0) {
+            var ctx = graphCanvas.getContext('2d');
+            ctx.fillStyle = "rgb(128, 128, 0)";
+            ctx.fillRect(scaledSteps % graphCanvas.width, graphCanvas.height - cellsAlive * yScale, 1, 1);
+            ctx.fillStyle = (scaledSteps % 2 == 0) ? "rgba(128,0,0,0.3)" : "rgba(0,0,0)";
+            ctx.fillRect(scaledSteps % graphCanvas.width, graphCanvas.height - maleCount() * 2, 1, 1);
+            ctx.fillStyle = (scaledSteps % 2 == 0) ? "rgba(0,0,0)" : "rgba(0,0,128,0.3)";
+            ctx.fillRect(scaledSteps % graphCanvas.width, graphCanvas.height - femaleCount() * 2, 1, 1);
+        }
     }
 
     // Calculate generations per second
@@ -168,7 +171,7 @@ $(function () {
     }
 
     // Update the counter
-    function updateData() {
+    function updateCellularData() {
         $teller.text(steps);
         $cellsAlive.text(cellsAlive);
         $speed.text(speed);
@@ -252,6 +255,9 @@ $(function () {
                         thisBug.fat -= minBugFat;
                         thatBug.fat -= minBugFat;
                     } else {
+                        thisBug.mating = false;
+                        thatBug.mating = false;
+                        // Hierdoor blijven ze bij elkaar.. of op elkaar
                         thisBug.direction = thatBug.direction + Math.PI / 4;
                         thatBug.direction = tempDirection - Math.PI / 4;
                     }
@@ -262,8 +268,15 @@ $(function () {
         }
     }
 
+    // Change gender of a bug if only one gender remains
+    function balanceGenders() {
+        if (bugs[0] && maleCount() == 0 || femaleCount() == 0) {
+            bugs[0].gender = (bugs[0].gender + 1) % 2;
+        }
+    }
+
     // Draw the bugs
-    function drawBugs() {
+    function bugStep() {
         var ctx = canvas.getContext('2d');
         var thisBug;
         var deadBugs = [];
@@ -284,6 +297,7 @@ $(function () {
         for (var j = 0; j < deadBugs.length; j++) {
             bugs.splice(deadBugs[j], 1);
         }
+        balanceGenders();
     }
 
     function fixedDecimals(num, dec) {
@@ -318,7 +332,9 @@ $(function () {
         };
         var strongestBug = (thisBug.fat > thatBug.fat) ? thisBug : thatBug;
         var weakestBug = (thisBug.fat < thatBug.fat) ? thisBug : thatBug;
+        var oldestBug = (thisBug.generation > thatBug.generation) ? thisBug : thatBug;
         var newBornBug = new randomBug();
+        newBornBug.generation = oldestBug.generation + 1;
         newBornBug.x = center.x + Math.random() * 100 + strongestBug.radius;
         newBornBug.y = center.y + Math.random() * 100 + strongestBug.radius;
         newBornBug.turnProbability = strongestBug.turnProbability + randomSign() * weakestBug.turnProbability / 10;
@@ -333,6 +349,7 @@ $(function () {
             fat: 2 * minBugFat,
             alive: true,
             steps: 0,
+            generation: 0,
             offspring: 0,
             x: fixedDecimals((Math.random() * spaceWidth) * cellSize, 2),
             y: fixedDecimals((Math.random() * spaceHeight) * cellSize, 2),
@@ -356,7 +373,7 @@ $(function () {
                 } else {
                     this.x = fixedDecimals(xWrap(this.x + Math.cos(this.direction)), 2);
                     this.y = fixedDecimals(yWrap(this.y + Math.sin(this.direction)), 2);
-                    this.fat -= stepEnergy;
+                    this.fat -= Math.ceil(this.fat / (2 * adultFat));
                     this.radius = Math.min(fatToRadius(this.fat), this.maxRadius);
                     this.steps++;
                     this.hasTurned = false;
@@ -364,7 +381,6 @@ $(function () {
                         this.poop();
                     }
                 }
-                this.showData();
             },
             feed: function () {
                 if (this.alive) {
@@ -393,31 +409,6 @@ $(function () {
                     }
                 }
             },
-            // Uit object halen?
-            showData: function () {
-                var $oldTr = $('#bug' + this.id);
-                if (this.alive) {
-                    var $tr = $('<tr id="bug' + this.id + '"></tr>');
-                    $tr.append('<td>' + this.id + '</td>');
-                    $tr.append('<td>' + this.gender + '</td>');
-                    $tr.append('<td>' + this.fat + '</td>');
-                    $tr.append('<td>' + this.radius + '</td>');
-                    // $tr.append('<td>' + this.x + '</td>');
-                    // $tr.append('<td>' + this.y + '</td>');
-                    // $tr.append('<td>' + fixedDecimals(this.direction / Math.PI, 2) + '</td>');
-                    $tr.append('<td>' + fixedDecimals(this.turnAmount / Math.PI, 2) + '</td>');
-                    $tr.append('<td>' + fixedDecimals(this.turnProbability, 2) + '</td>');
-                    $tr.append('<td>' + this.offspring + '</td>');
-                    $tr.append('<td>' + this.steps + '</td>');
-                    if ($oldTr.length) {
-                        $oldTr.replaceWith($tr)
-                    } else {
-                        $bugData.append($tr);
-                    }
-                } else {
-                    $oldTr.remove();
-                }
-            },
             die: function () {
                 var r, angle, x, y;
                 for (var i = this.fat * graveMultiplier; i > 0; i--) {
@@ -428,7 +419,6 @@ $(function () {
                     deadBugCells.push(new celXY(x, y));
                 }
                 this.fat = 0;
-                this.showData();
             }
         }
     }
@@ -436,6 +426,22 @@ $(function () {
     function addBugs(amount) {
         for (var count = 0; count < amount; count++) {
             bugs.push(randomBug());
+        }
+    }
+
+    function updateScreen() {
+        fadeCells();
+        drawCells();
+        if (steps % 10 == 0) {
+            updateCellularData();
+            showData();
+        }
+        bugStep();
+        if (showGraph) {
+            drawGraph();
+        }
+        if (steps % canvas.width == 0) {
+            fadeGraph();
         }
     }
 
@@ -449,17 +455,8 @@ $(function () {
         zeroNeighbours();
         countNeighbours();
         evalNeighbours();
-        fadeCells();
-        drawCells();
         avoidOrAttractOthers();
-        drawBugs();
-        if (showGraph) {
-            drawGraph();
-        }
-        if (steps % canvas.width == 0) {
-            fadeGraph();
-        }
-        updateData();
+        updateScreen();
     }
 
     function firstStep() {
@@ -469,11 +466,8 @@ $(function () {
             initLiferules();
             clearSpace();
             fillRandom();
-            drawCells();
             addBugs(startBugsCount);
-            drawBugs();
-            updateData();
-            fadeGraph();
+            updateScreen();
         } else {
             // canvas-unsupported code here
             document.write("If you see this, you&rsquo;d better install Firefox or Chrome or Opera or Safari or &hellip;");
@@ -560,7 +554,7 @@ $(function () {
         initVariables();
         initArrays();
         clearSpace();
-        updateData();
+        updateCellularData();
     }
     $('#clearbutton').on('click', function () {
         clearLife();
@@ -609,8 +603,47 @@ $(function () {
         mouseY = Math.floor((event.offsetY ? (event.offsetY) : event.pageY - this.offsetTop) / cellSize);
         liveCells.push(new celXY(mouseX, mouseY));
         drawCells();
-        updateData();
+        updateCellularData();
     });
+
+    // Uit object halen?
+    function showData() {
+        $('#bugCount').text(bugs.length);
+        for (var i = 0; i < bugs.length; i++) {
+            var thisBug = bugs[i];
+            var $oldTr = $bugData.find('tr#bug' + thisBug.id);
+            if (thisBug.alive) {
+                var $tr = $('<tr id="bug' + thisBug.id + '"></tr>');
+                $tr.append('<td>' + thisBug.id + '</td>');
+                $tr.append('<td>' + thisBug.gender + '</td>');
+                $tr.append('<td>' + thisBug.fat + '</td>');
+                $tr.append('<td>' + thisBug.radius + '</td>');
+                // $tr.append('<td>' + this.x + '</td>');
+                // $tr.append('<td>' + this.y + '</td>');
+                // $tr.append('<td>' + fixedDecimals(this.direction / Math.PI, 2) + '</td>');
+                $tr.append('<td>' + fixedDecimals(thisBug.turnAmount / Math.PI, 2) + '</td>');
+                $tr.append('<td>' + fixedDecimals(thisBug.turnProbability, 2) + '</td>');
+                $tr.append('<td>' + thisBug.offspring + '</td>');
+                $tr.append('<td>' + thisBug.generation + '</td>');
+                if ($oldTr.length) {
+                    $oldTr.replaceWith($tr)
+                } else {
+                    $bugData.append($tr);
+                }
+            } else {
+                $oldTr.remove();
+            }
+        }
+        $.each($bugData.find('tr[id^="bug"]'), function () {
+            var thisTr = this;
+            function idMatch(bug) {
+                return 'bug' + bug.id == thisTr.id;
+            }
+            if (!bugs.find(idMatch)) {
+                this.remove();
+            }
+        });
+    }
 
     firstStep();
     if (running === false) {

@@ -26,7 +26,7 @@
     <g:plusone></g:plusone>
 
     <div id="container">
-        <h1>Conway's game of life got bugged - <a href="http://www.ashware.nl"
+        <h1>Conway's life got bugged - <a href="http://www.ashware.nl"
                target="_blank">ashWare</a></h1>
         <canvas id="thetoroid"
                 width="704"
@@ -151,11 +151,14 @@
         <div id="data">
             <a href="#"
                id="texttoggler"
-               class="toggler r">Text on/off</a>
+               class="toggler r">Story on/off</a>
             <p>Generations (x-axis): <span id="teller">0</span> - Live cells (y-axis): <span id="cellsalive">0</span> -
-                <span id="speed">0</span> generations/sec.</p>
+                <span id="speed">0</span> generations/sec.
+            </p>
+            </a>
         </div>
         <div id="bugData">
+            <h2>Bugs alive <span id="bugCount"></span></h2>
             <table>
                 <thead>
                     <tr>
@@ -169,7 +172,7 @@
                         <td>turnAmount</td>
                         <td>turnProb.</td>
                         <td>Offspring</td>
-                        <td>Steps</td>
+                        <td>Generation</td>
                     </tr>
                 </thead>
             </table>
@@ -188,25 +191,19 @@
                         src="http://pagead2.googlesyndication.com/pagead/show_ads.js">
                 </script> -->
             </div>
+            <h2>Story</h2>
             <p class="intro">Conway&rsquo;s game of life, who hasn't heard of it :) Well for me it has been a toy and a joy for many years.
-                Here it has become my vehicle te learn javascript and jquery.</p>
-
-
-            <h2>How to use this lab</h2>
-            <p>When loaded, it starts running by itself. The graph shows the amount of 'live' cells in time. Check
+                Check
                 <a href="http://en.wikipedia.org/wiki/Conway's_Game_of_Life"
-                   target="_blank">Wikipedia</a> for an explanation of Conway&rsquo;s life.</p>
+                   target="_blank"
+                   title="wikipedia">Wikipedia</a> for an explanation of Conway&rsquo;s life. As the default
+                form of it has a tendency to die out, I figured to introduce another life form that interacts with the cellular
+                automata, to keep things going.</p>
+
             <h2>Experiment</h2>
-            <p>One can experiment with the (initial random) fill ratio, follow the population in the graph.</p>
-            <p>Change the cell size with the radio buttons labeled &lsquo;1&rsquo;, &lsquo;2&rsquo;, &lsquo;4&rsquo; and &lsquo;8&rsquo;
-                to zoom in or out. When zooming in, the area will be cropped though.</p>
             <p>Uncheck &lsquo;Trails&rsquo; to see the raw Conway's life.</p>
             <p>Switch on the &lsquo;life rules&rsquo; and play with them.</p>
-            <h2>Draw your own life cells</h2>
-            <p>To experiment with your own start cells, you can draw them in the &lsquo;life area&rsquo;: hit <span class="key"></span>stop,
-                hit <span class="key"></span>clear, click in the white area at will. When done hit <span class="key"></span>step
-                or start.<br /> It is possible though, to draw new life while it is still running. Click close to static
-                pieces of life and look what happens.</p>
+
             <h2>Life controls</h2>
             <p>Life can be controlled with the <span class="key">Start</span>, <span class="key">Stop</span>, <span class="key">Step</span>                and <span class="key">Step back</span> buttons, which are quite self-explanatory.<br /> The following shortcut
                 keys can be used as well:</p>
