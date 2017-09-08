@@ -30,6 +30,7 @@ $(function () {
         cellNutritionValue = 3,
         stepEnergy = 1,
         minBugFat = 50,
+        adultFat = 1000,
         graveRadius = 100,
         graveMultiplier = 20,
         bugs = [],
@@ -157,7 +158,6 @@ $(function () {
         ctx.fillStyle = (steps % 2 == 0) ? "rgba(128,0,0,0.3)" : "rgba(0,0,0)";
         ctx.fillRect(steps % graphCanvas.width, graphCanvas.height - maleCount() * 10, 1, 1);
         ctx.fillStyle = (steps % 2 == 0) ? "rgba(0,0,0)" : "rgba(0,0,128,0.3)";
-        ctx.fillStyle = "";
         ctx.fillRect(steps % graphCanvas.width, graphCanvas.height - femaleCount() * 10, 1, 1);
     }
 
@@ -234,7 +234,7 @@ $(function () {
     }
 
     // Let bugs avoid each other
-    function avoidOthers() {
+    function avoidOrAttractOthers() {
         for (var i = 0; i < bugs.length; i++) {
             var thisBug = bugs[i];
             var tempDirection = thisBug.direction;
@@ -243,8 +243,16 @@ $(function () {
                 var distance = Math.sqrt(Math.pow((thisBug.x - thatBug.x), 2) + Math.pow((thisBug.x - thatBug.x), 2));
                 var minDistance = thisBug.radius + thatBug.radius + 7;
                 if (distance < minDistance) {
-                    thisBug.direction = thatBug.direction + Math.PI / 4;
-                    thatBug.direction = tempDirection - Math.PI / 4;
+                    if (thisBug.adult() && thatBug.adult()) {
+                        thisBug.mating = true;
+                        thatBug.mating = true;
+                        addBugs(1);
+                        thisBug.fat -= minBugFat;
+                        thatBug.fat -= minBugFat;
+                    } else {
+                        thisBug.direction = thatBug.direction + Math.PI / 4;
+                        thatBug.direction = tempDirection - Math.PI / 4;
+                    }
                     thisBug.hasTurned = true;
                     thatBug.hasTurned = true;
                 }
@@ -309,6 +317,10 @@ $(function () {
             },
             hasTurned: false,
             gender: Math.floor(Math.random() * 2),
+            adult: function () {
+                return this.fat > adultFat;
+            },
+            mating: false,
             remnantCells: minBugFat,
             radius: fatToRadius(this.remnantCells),
             maxRadius: 15,
@@ -370,6 +382,7 @@ $(function () {
                     $tr.append('<td>' + fixedDecimals(this.turnAmount / Math.PI, 2) + '</td>');
                     $tr.append('<td>' + fixedDecimals(this.turnProbability, 2) + '</td>');
                     $tr.append('<td>' + this.turnDirection() + '</td>');
+                    $tr.append('<td>' + this.steps + '</td>');
                     if ($oldTr.length) {
                         $oldTr.replaceWith($tr)
                     } else {
@@ -412,7 +425,7 @@ $(function () {
         evalNeighbours();
         fadeCells();
         drawCells();
-        avoidOthers();
+        avoidOrAttractOthers();
         drawBugs();
         if (showGraph) {
             drawGraph();
