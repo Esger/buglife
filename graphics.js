@@ -3,6 +3,7 @@ $(function () {
     var canvas = document.getElementById('thetoroid'), // The canvas where life is drawn
         graphCanvas = document.getElementById('thegraph'), // The canvas where the graph is drawn
         showGraph = false,
+        showData = true,
         $teller = $('#teller'),
         $cellsAlive = $('#cellsalive'),
         $speed = $('#speed'),
@@ -350,7 +351,7 @@ $(function () {
         newBornBug.generation = oldestBug.generation + 1;
         newBornBug.y = fixedDecimals(center.y + Math.cos(Math.random() * 2 * Math.PI) * (Math.random() * 100 + strongestBug.radius));
         newBornBug.x = fixedDecimals(center.x + Math.cos(Math.random() * 2 * Math.PI) * (Math.random() * 100 + strongestBug.radius));
-        newBornBug.turnProbability = strongestBug.turnProbability + randomSign() * weakestBug.turnProbability / 10;
+        newBornBug.turnProbability = Math.min(strongestBug.turnProbability + randomSign() * weakestBug.turnProbability / 10, 1);
         newBornBug.turnAmount = strongestBug.turnAmount + randomSign() * weakestBug.turnAmount / 10;
         newBornBug.poopFrequency = Math.round(strongestBug.poopFrequency + randomSign() * weakestBug.poopFrequency / 10);
         bugs.push(newBornBug);
@@ -464,7 +465,9 @@ $(function () {
         drawCells();
         if (steps % 10 == 0) {
             updateCellularData();
-            showData();
+            if (showData) {
+                showDataTable();
+            }
         }
         bugStep();
         if (showGraph) {
@@ -623,6 +626,12 @@ $(function () {
         $('#story').toggle('slow');
     });
 
+    // Toggle bug data on or off
+    $('#datatoggler').on('click', function () {
+        showData = !showData;
+        $('#bugData').toggle('slow');
+    });
+
     $('#liferules input').on('click', function () {
         initLiferules();
     });
@@ -637,7 +646,7 @@ $(function () {
     });
 
     // Uit object halen?
-    function showData() {
+    function showDataTable() {
         $('#bugCount').text(bugs.length);
         for (var i = 0; i < bugs.length; i++) {
             var thisBug = bugs[i];
