@@ -27,7 +27,7 @@ $(function () {
         speed = 0,
 
         startBugsCount = 20,
-        cellNutritionValue = 3,
+        cellNutritionValue = 2.55,
         minBugFat = 50,
         adultFat = 1000,
         graveRadius = 100,
@@ -240,29 +240,35 @@ $(function () {
     function avoidOrAttractOthers() {
         for (var i = 0; i < bugs.length; i++) {
             var thisBug = bugs[i];
-            var tempDirection = thisBug.direction;
-            for (var j = i + 1; j < bugs.length; j++) {
-                var thatBug = bugs[j];
-                var distance = Math.sqrt(Math.pow((thisBug.x - thatBug.x), 2) + Math.pow((thisBug.x - thatBug.x), 2));
-                var minDistance = thisBug.radius + thatBug.radius + 7;
-                if (distance < minDistance) {
-                    if (thisBug.adult() && thatBug.adult() && thisBug.gender !== thatBug.gender) {
-                        thisBug.mating = true;
-                        thatBug.mating = true;
-                        giveBirth(thisBug, thatBug);
-                        thisBug.offspring++;
-                        thatBug.offspring++;
-                        thisBug.fat -= minBugFat;
-                        thatBug.fat -= minBugFat;
-                    } else {
-                        thisBug.mating = false;
-                        thatBug.mating = false;
-                        // Hierdoor blijven ze bij elkaar.. of op elkaar
-                        thisBug.direction = thatBug.direction + Math.PI / 4;
-                        thatBug.direction = tempDirection - Math.PI / 4;
+            if (bugs.length == 1 && bugs[0].adult()) {
+                giveBirth(thisBug, thisBug);
+                thisBug.offspring++;
+                thisBug.fat -= minBugFat;
+            } else {
+                var tempDirection = thisBug.direction;
+                for (var j = i + 1; j < bugs.length; j++) {
+                    var thatBug = bugs[j];
+                    var distance = Math.sqrt(Math.pow((thisBug.x - thatBug.x), 2) + Math.pow((thisBug.x - thatBug.x), 2));
+                    var minDistance = thisBug.radius + thatBug.radius + 7;
+                    if (distance < minDistance) {
+                        if (thisBug.adult() && thatBug.adult() && thisBug.gender !== thatBug.gender) {
+                            thisBug.mating = true;
+                            thatBug.mating = true;
+                            giveBirth(thisBug, thatBug);
+                            thisBug.offspring++;
+                            thatBug.offspring++;
+                            thisBug.fat -= minBugFat;
+                            thatBug.fat -= minBugFat;
+                        } else {
+                            thisBug.mating = false;
+                            thatBug.mating = false;
+                            // Hierdoor blijven ze bij elkaar.. of op elkaar
+                            thisBug.direction = thatBug.direction + Math.PI / 4;
+                            thatBug.direction = tempDirection - Math.PI / 4;
+                        }
+                        thisBug.hasTurned = true;
+                        thatBug.hasTurned = true;
                     }
-                    thisBug.hasTurned = true;
-                    thatBug.hasTurned = true;
                 }
             }
         }
@@ -277,15 +283,19 @@ $(function () {
 
     // Draw the bugs
     function bugStep() {
+        function drawBug(thisBug) {
+            var mouthWidth = Math.PI / 4;
+            ctx.fillStyle = thisBug.color();
+            ctx.beginPath();
+            ctx.arc(thisBug.x, thisBug.y, thisBug.radius * cellSize, thisBug.direction + mouthWidth, thisBug.direction - mouthWidth);
+            ctx.fill();
+        }
         var ctx = canvas.getContext('2d');
         var thisBug;
         var deadBugs = [];
         for (var i = 0; i < bugs.length; i++) {
             var thisBug = bugs[i];
-            ctx.fillStyle = (thisBug.gender == 1) ? "rgba(128,0,0,0.5)" : "rgba(0,0,128,0.5)";
-            ctx.beginPath();
-            ctx.arc(thisBug.x, thisBug.y, thisBug.radius * cellSize, 0, 2 * Math.PI);
-            ctx.fill();
+            drawBug(thisBug);
             if (thisBug.alive) {
                 thisBug.move();
             } else {
@@ -301,6 +311,9 @@ $(function () {
     }
 
     function fixedDecimals(num, dec) {
+        if (!dec) {
+            dec = 2;
+        }
         var decimalFactor = Math.pow(10, dec);
         return Math.round(num * decimalFactor) / decimalFactor;
     }
@@ -335,11 +348,11 @@ $(function () {
         var oldestBug = (thisBug.generation > thatBug.generation) ? thisBug : thatBug;
         var newBornBug = new randomBug();
         newBornBug.generation = oldestBug.generation + 1;
-        newBornBug.x = center.x + Math.random() * 100 + strongestBug.radius;
-        newBornBug.y = center.y + Math.random() * 100 + strongestBug.radius;
+        newBornBug.y = fixedDecimals(center.y + Math.cos(Math.random() * 2 * Math.PI) * (Math.random() * 100 + strongestBug.radius));
+        newBornBug.x = fixedDecimals(center.x + Math.cos(Math.random() * 2 * Math.PI) * (Math.random() * 100 + strongestBug.radius));
         newBornBug.turnProbability = strongestBug.turnProbability + randomSign() * weakestBug.turnProbability / 10;
         newBornBug.turnAmount = strongestBug.turnAmount + randomSign() * weakestBug.turnAmount / 10;
-        newBornBug.poopFrequency = strongestBug.poopFrequency + randomSign() * weakestBug.poopFrequency / 10;
+        newBornBug.poopFrequency = Math.round(strongestBug.poopFrequency + randomSign() * weakestBug.poopFrequency / 10);
         bugs.push(newBornBug);
     }
 
@@ -366,13 +379,30 @@ $(function () {
             remnantCells: minBugFat,
             radius: fatToRadius(this.remnantCells),
             maxRadius: 15,
+            color: function () {
+                var rgbVal;
+                if (this.gender == 1) {
+                    if (this.adult()) {
+                        rgbVal = "255,77,77,0.7";
+                    } else {
+                        rgbVal = "128,0,0,0.7";
+                    }
+                } else {
+                    if (this.adult()) {
+                        rgbVal = "77,77,255,0.7";
+                    } else {
+                        rgbVal = "0,0,128,0.7";
+                    }
+                }
+                return "rgba(" + rgbVal + ")";
+            },
             poopFrequency: Math.floor(Math.random() * 40 + 10),
             move: function () {
                 if (this.fat < this.remnantCells) {
                     this.alive = false;
                 } else {
-                    this.x = fixedDecimals(xWrap(this.x + Math.cos(this.direction)), 2);
-                    this.y = fixedDecimals(yWrap(this.y + Math.sin(this.direction)), 2);
+                    this.x = fixedDecimals(xWrap(this.x + Math.cos(this.direction)));
+                    this.y = fixedDecimals(yWrap(this.y + Math.sin(this.direction)));
                     this.fat -= Math.ceil(this.fat / (2 * adultFat));
                     this.radius = Math.min(fatToRadius(this.fat), this.maxRadius);
                     this.steps++;
@@ -614,15 +644,15 @@ $(function () {
             var $oldTr = $bugData.find('tr#bug' + thisBug.id);
             if (thisBug.alive) {
                 var $tr = $('<tr id="bug' + thisBug.id + '"></tr>');
-                $tr.append('<td>' + thisBug.id + '</td>');
+                $tr.append('<td>' + (thisBug.id + '').substr(-4) + '</td>');
                 $tr.append('<td>' + thisBug.gender + '</td>');
-                $tr.append('<td>' + thisBug.fat + '</td>');
+                $tr.append('<td>' + Math.round(thisBug.fat) + '</td>');
                 $tr.append('<td>' + thisBug.radius + '</td>');
                 // $tr.append('<td>' + this.x + '</td>');
                 // $tr.append('<td>' + this.y + '</td>');
                 // $tr.append('<td>' + fixedDecimals(this.direction / Math.PI, 2) + '</td>');
-                $tr.append('<td>' + fixedDecimals(thisBug.turnAmount / Math.PI, 2) + '</td>');
-                $tr.append('<td>' + fixedDecimals(thisBug.turnProbability, 2) + '</td>');
+                $tr.append('<td>' + fixedDecimals(thisBug.turnAmount / Math.PI) + '</td>');
+                $tr.append('<td>' + fixedDecimals(thisBug.turnProbability) + '</td>');
                 $tr.append('<td>' + thisBug.offspring + '</td>');
                 $tr.append('<td>' + thisBug.generation + '</td>');
                 if ($oldTr.length) {
