@@ -72,16 +72,13 @@ $(function () {
         yScale = 5 * graphCanvas.height / numberCells;
         bugsYscale = (maleCount() != Infinity) ? Math.floor(graphCanvas.height / maleCount()) : graphCanvas.height / 5;
         bugId = 1;
-    }
-
-    // Empty the arrays to get ready for restart.
-    function initArrays() {
         liveCells = [];
         deadBugCells = [];
         deadBugs = [];
         neighbours = [];
         bugs = [];
         $bugData.find('tbody tr').remove();
+        clearSpace();
     }
 
     function initLiferules() {
@@ -286,23 +283,10 @@ $(function () {
         for (var i = 0; i < bugs.length; i++) {
             var thisBug = bugs[i];
             drawBug(thisBug);
-            if (thisBug.alive) {
-                thisBug.move();
-            } else {
-                deadBugs.push(i);
-                thisBug.die();
-            }
-
-        }
-        for (var j = 0; j < deadBugs.length; j++) {
-            bugs.splice(deadBugs[j], 1);
-        }
-        if (bugs.length > 1) {
-            balanceGenders();
         }
     }
 
-    function stepBugs() {
+    function moveBugs() {
         for (var i = 0; i < bugs.length; i++) {
             var thisBug = bugs[i];
             if (thisBug.alive) {
@@ -316,6 +300,7 @@ $(function () {
         for (var j = 0; j < deadBugs.length; j++) {
             bugs.splice(deadBugs[j], 1);
         }
+        deadBugs = [];
         if (bugs.length > 1) {
             balanceGenders();
         }
@@ -418,8 +403,9 @@ $(function () {
         }
 
         function lastAdultBug() {
-            if (bugs.length == 1 && bugs[0].adult()) {
-                thisBug.gender = 0;
+            var lastBug = bugs[0];
+            if (bugs.length == 1 && lastBug.adult()) {
+                lastBug.gender = 0;
                 return true;
             } else {
                 return false;
@@ -476,13 +462,16 @@ $(function () {
                 thisBug.pregnant = true;
                 thatBug.pregnant = false;
                 thisBug.partner = thatBug.id;
-                thisBug.recoverySteps++;
             }
             if (thatBug.gender == 0) {
                 thatBug.pregnant = true;
                 thisBug.pregnant = false;
                 thatBug.partner = thisBug.id;
             }
+        }
+
+        function fertile() {
+            return differentGenders() && bothAdult();
         }
 
         for (var i = 0; i < bugs.length; i++) {
@@ -495,23 +484,19 @@ $(function () {
                 for (var j = i + 1; j < bugs.length; j++) {
                     var thatBug = bugs[j];
                     if (approaching()) {
-                        if (differentGenders()) {
-                            if (bothAdult()) {
-                                turnFaces();
-                                fertilize();
-                                if (fullTerm()) {
-                                    giveBirth(thisBug);
-                                }
-                            } else {
-                                // They're not both adult
-                                bounceStep();
+                        if (fertile()) {
+                            turnFaces();
+                            fertilize();
+                            if (fullTerm()) {
+                                giveBirth(thisBug);
                             }
                         } else {
-                            // They're the same make
+                            // They're not fertile
                             bounceStep();
                         }
                     } else {
                         // They're heading into open space
+                        thisBug.recoverySteps++;
                         thisBug.bounceSteps = bounceCycles;
                         if (timeToTurn()) {
                             turn();
@@ -660,16 +645,14 @@ $(function () {
         countNeighbours();
         evalNeighbours();
         avoidOrAttractOthers();
-        stepBugs();
+        moveBugs();
         updateScreen();
     }
 
     function firstStep() {
         if (canvas.getContext) {
             initVariables();
-            initArrays();
             initLiferules();
-            clearSpace();
             fillRandom();
             addBugs(startBugsCount);
             updateScreen();
@@ -762,8 +745,6 @@ $(function () {
         running = false;
         steps = 0;
         initVariables();
-        initArrays();
-        clearSpace();
         updateCellularData();
     }
     $('#clearbutton').on('click', function () {
