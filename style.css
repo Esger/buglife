@@ -11,10 +11,17 @@ body, html {
     color      : #404000;
 }
 
+body {
+    display        : flex;
+    justify-content: space-around;
+}
+
 #container {
-    margin          : 0 auto;
-    width           : 750px;
-    padding         : 50px 0 50px 50px;
+    flex            : 0 0 750px;
+    display         : flex;
+    flex-direction  : column;
+    justify-content : flex-start;
+    padding         : 50px;
     background-color: #dd0;
     height          : 100%;
 }
