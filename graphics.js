@@ -45,7 +45,7 @@ $(function () {
         pregnancySteps = 100,
         running = false,
         showGraph = false,
-        showData = false,
+        showData = true,
         showIds = false,
         spaceHeight = (canvas.height / cellSize),
         spaceWidth = (canvas.width / cellSize),
@@ -395,11 +395,11 @@ $(function () {
             var dY = thisBug.y - thatBug.y;
             var distance = Math.sqrt(Math.pow((dX), 2) + Math.pow((dY), 2));
             var minDistance = thisBug.radius + thatBug.radius + 5;
-            return distance < minDistance && thisBug.bounceSteps > 0;
+            return distance < minDistance && bounceCycles >= thisBug.bounceSteps && thisBug.bounceSteps > 0;
         }
 
         function fullTerm() {
-            return thisBug.gender == 0 && thisBug.recoverySteps == pregnancySteps;
+            return thisBug.gender == 0 && thisBug.recoverySteps >= pregnancySteps;
         }
 
         function lastAdultBug() {
@@ -421,7 +421,7 @@ $(function () {
         }
 
         function timeToTurn() {
-            return thisBug.steps % thisBug.turnSteps == 0;
+            return thisBug.steps % thisBug.turnSteps == 0 && bounceCycles >= thisBug.bounceSteps > 0;
         }
 
         function turn() {
@@ -429,26 +429,21 @@ $(function () {
             // thatBug.direction = thisBug.direction % (2 * pi);
         }
 
-        function bounceStep() {
-            var tempDirection = thisBug.direction;
+        function startBounce() {
             if (thisBug.bounceSteps == bounceCycles) {
+                console.log('startBounce');
                 // exChanging directions
-                thisBug.direction = thatBug.direction;
-                thatBug.direction = tempDirection;
+                thisBug.direction += pi / 2;
                 // start countdown
                 thisBug.bounceSteps--;
-                thatBug.bounceSteps--;
             }
-            // It's still bouncing: countdown
-            thisBug.bounceSteps--;
-            thatBug.bounceSteps--;
         }
 
         function turnFaces() {
             var dX = thisBug.x - thatBug.x;
             var dY = thisBug.y - thatBug.y;
             var angle = thisBug.direction;
-            if (Math.abs(dY) >= Math.abs(dX) > 0) {
+            if (Math.abs(dY) >= Math.abs(dX) && Math.abs(dX) > 0) {
                 angle = Math.acos(dX / dY);
             } else {
                 angle = Math.asin(dY / dX);
@@ -481,25 +476,25 @@ $(function () {
                 giveBirth(thisBug);
             } else {
                 // There's more of them buggers
-                for (var j = i + 1; j < bugs.length; j++) {
-                    var thatBug = bugs[j];
-                    if (approaching()) {
-                        if (fertile()) {
-                            turnFaces();
-                            fertilize();
-                            if (fullTerm()) {
-                                giveBirth(thisBug);
+                for (var j = 0; j < bugs.length; j++) {
+                    if (i !== j) {
+                        var thatBug = bugs[j];
+                        if (approaching()) {
+                            if (fertile()) {
+                                turnFaces();
+                                fertilize();
+                                if (fullTerm()) {
+                                    giveBirth(thisBug);
+                                }
+                            } else {
+                                // They're not fertile
+                                startBounce();
                             }
                         } else {
-                            // They're not fertile
-                            bounceStep();
-                        }
-                    } else {
-                        // They're heading into open space
-                        thisBug.recoverySteps++;
-                        thisBug.bounceSteps = bounceCycles;
-                        if (timeToTurn()) {
-                            turn();
+                            // They're heading into open space
+                            if (timeToTurn()) {
+                                turn();
+                            }
                         }
                     }
                 }
@@ -524,7 +519,6 @@ $(function () {
             offspring: 0,
             partner: null,
             poopFrequency: Math.floor(Math.random() * 40 + 10),
-            pregnancySteps: 0,
             pregnant: false,
             radius: fatToRadius(this.remnantCells),
             recoverySteps: 0,
@@ -561,6 +555,8 @@ $(function () {
                     this.fat -= Math.log10(this.fat) / 2;
                     this.radius = Math.min(fatToRadius(this.fat), this.maxRadius);
                     this.steps++;
+                    this.recoverySteps += (this.pregnant) ? 1 : 0;
+                    this.bounceSteps = (bounceCycles > this.bounceSteps && this.bounceSteps > 0) ? this.bounceSteps - 1 : bounceCycles;
                     if (this.steps % this.poopFrequency == 0) {
                         this.poop();
                     }
@@ -785,6 +781,11 @@ $(function () {
     });
 
     // Toggle bug data on or off
+    if (showData) {
+        $('#bugData').show();
+    } else {
+        $('#bugData').hide();
+    }
     $('#datatoggler').on('click', function () {
         showData = !showData;
         $('#bugData').toggle('slow');
@@ -840,6 +841,7 @@ $(function () {
                 // $tr.append('<td>' + this.x + '</td>');
                 // $tr.append('<td>' + this.y + '</td>');
                 // $tr.append('<td>' + fixedDecimals(this.direction / pi, 2) + '</td>');
+                // $tr.append('<td>' + fixedDecimals(thisBug.bounceSteps) + '</td>');
                 $tr.append('<td>' + fixedDecimals(thisBug.turnAmount) + '</td>');
                 $tr.append('<td>' + fixedDecimals(thisBug.turnSteps) + '</td>');
                 $tr.append('<td>' + thisBug.offspring + '</td>');
