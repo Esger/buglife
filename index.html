@@ -54,16 +54,17 @@
                    id="randombutton"
                    title="Random"></a>
                 <label><input class="trails" type="checkbox" checked /> Trails</label>
+                <label><input class="cellNutrition" type="number" value="3" step="0.05" /> Cell Nutrition Value</label>
                 <a href="#"
                    id="bugbutton"
                    title="Add a bug">Add&nbsp;a&nbsp;bug</a>
 
                 <a href="#"
                    id="rulestoggler"
-                   class="toggler">Life rules on/off</a><br />
+                   class="toggler">Life rules</a><br />
                 <a href="#"
                    id="graphtoggler"
-                   class="toggler">Graph on/off</a><br />
+                   class="toggler">Graph</a><br />
             </form>
             <form id="liferules"
                   action="#">
@@ -150,17 +151,18 @@
                 height="252"></canvas>
         <div id="data">
             <a href="#"
-               id="texttoggler"
-               class="toggler r">Story on/off</a>
-            <a href="#"
                id="datatoggler"
-               class="toggler r">Bug data on/off</a>
+               class="toggler r">Bug data</a>
+            <a href="#"
+               id="texttoggler"
+               class="toggler r">Story</a>
             <p>Generations (x-axis): <span id="teller">0</span> - Live cells (y-axis): <span id="cellsalive">0</span> -
                 <span id="speed">0</span> generations/sec.
             </p>
             </a>
         </div>
-        <div id="bugData">
+        <div id="bugData"
+             class="hidden">
             <h2>Bugs alive <span id="bugCount"></span></h2>
             <table>
                 <thead>
@@ -168,12 +170,13 @@
                         <td>Id</td>
                         <td>Gender</td>
                         <td>Fat</td>
-                        <td>Radius</td>
+                        <!-- <td>Radius</td> -->
+                        <!-- <td>Direction</td> -->
                         <!-- <td>X</td>
                         <td>Y</td> -->
                         <!-- <td>Direction</td> -->
                         <td>turnAmount</td>
-                        <td>turnProb.</td>
+                        <td>turnSteps</td>
                         <td>Offspring</td>
                         <td>Generation</td>
                     </tr>

@@ -6,7 +6,7 @@
 }
 
 body, html {
-    font       : 12px trebuchet MS;
+    font       : 12px 'trebuchet MS';
     line-height: 20px;
     color      : #404000;
 }
@@ -60,8 +60,12 @@ input, label {
     font : 12px bold 'trebuchet MS';
 }
 
-#liferules input, .cellsizer, .history, .trails {
+#liferules input, .cellNutrition, .cellsizer, .history, .trails {
     margin: 0 3px 0 10px;
+}
+
+.cellNutrition {
+    width: 50px;
 }
 
 canvas {
