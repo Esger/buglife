@@ -14,31 +14,23 @@ $(function () {
         bounceCycles = 100,
         bugs = [],
         bugsYscale,
-        cellNutritionValue = 4,
+        cellNutritionValue = 3,
         cellsAlive, // Number of cells alive
         cellSize = 1, // Width and heigth of a cell in pixels
+        feromoneRange = 100,
         fillRatio = 20, // Percentage of available cells that will be set alive initially (20)
         dataCycle = 10,
         deadBugCells = [],
         deadBugs = [],
-
         graveRadius = 50,
         graveMultiplier = 10,
         gogogo = null,
         interval = 0, // Milliseconds between iterations
         liferules = [],
-        maleCount = function () {
-            return bugs.filter(function (value, i, bugs) {
-                return value.gender == 1;
-                // console.log(value, i, bugs);
-            }).length;
-        },
-        femaleCount = function () {
-            return bugs.length - maleCount();
-        },
         liveCells = [], // Array with x,y coordinates of living cells
         minBugFat = 50,
         neighbours, // Array with neighbours count
+        newBornSteps = 500,
         numberCells = spaceWidth * spaceHeight, // Number of available cells
         pi = Math.PI,
         prevSteps = 0,
@@ -54,13 +46,19 @@ $(function () {
         startBugsCount = 11,
         startnumberLivecells = numberCells * fillRatio / 100,
         steps = 0, // Number of iterations / steps done
-        walkers = [
-            [[-1, -1], [0, -1], [1, -1], [1, 0], [0, 1]], // up right
-            [[1, -1], [-1, 0], [1, 0], [0, 1], [1, 1]],   // down right
-            [[0, -1], [-1, 0], [-1, 1], [0, 1], [1, 1]],  // down left
-            [[-1, -1], [0, -1], [-1, 0], [1, 0], [-1, 1]] // up left
-        ],
+        walkers = [],
         yScale = 5 * graphCanvas.height / numberCells; //Ratio to apply values on y-axis
+
+    function maleCount() {
+        return bugs.filter(function (value, i, bugs) {
+            return value.gender == 1;
+            // console.log(value, i, bugs);
+        }).length;
+    }
+
+    function femaleCount() {
+        return bugs.length - maleCount();
+    }
 
     // Set some variables
     function initVariables() {
@@ -77,6 +75,12 @@ $(function () {
         deadBugs = [];
         neighbours = [];
         bugs = [];
+        walkers = [
+            [[-1, -1], [0, -1], [1, -1], [1, 0], [0, 1]], // up right
+            [[1, -1], [-1, 0], [1, 0], [0, 1], [1, 1]],   // down right
+            [[0, -1], [-1, 0], [-1, 1], [0, 1], [1, 1]],  // down left
+            [[-1, -1], [0, -1], [-1, 0], [1, 0], [-1, 1]] // up left
+        ];
         $bugData.find('tbody tr').remove();
         clearSpace();
     }
@@ -295,7 +299,6 @@ $(function () {
                 deadBugs.push(i);
                 thisBug.die();
             }
-
         }
         for (var j = 0; j < deadBugs.length; j++) {
             bugs.splice(deadBugs[j], 1);
@@ -373,8 +376,10 @@ $(function () {
         thisBug.recoverySteps = 0;
 
         var newBornBug = new randomBug();
-
+        newBornBug.Id = thisBug.id;
+        newBornBug.motherId = thisBug.id;
         newBornBug.generation = oldestBug.generation + 1;
+        newBornBug.lockDirection = true;
 
         newBornBug.y = fixedDecimals(center.y + Math.cos(Math.random() * 2 * pi) * (Math.random() * 100 + strongestBug.radius));
         newBornBug.x = fixedDecimals(center.x + Math.cos(Math.random() * 2 * pi) * (Math.random() * 100 + strongestBug.radius));
@@ -390,12 +395,16 @@ $(function () {
     // Let bugs avoid each other
     function avoidOrAttractOthers() {
 
-        function approaching() {
+        function inRange(minDistance) {
             var dX = thisBug.x - thatBug.x;
             var dY = thisBug.y - thatBug.y;
             var distance = Math.sqrt(Math.pow((dX), 2) + Math.pow((dY), 2));
+            return distance < minDistance;
+        }
+
+        function together() {
             var minDistance = thisBug.radius + thatBug.radius + 5;
-            return distance < minDistance && bounceCycles >= thisBug.bounceSteps && thisBug.bounceSteps > 0;
+            return inRange(minDistance);
         }
 
         function fullTerm() {
@@ -417,88 +426,87 @@ $(function () {
         }
 
         function bothAdult() {
-            return thisBug.adult() && thatBug.adult();
+            return thisBug.adult() && thatBug.adult() && !thisBug.pregnant && !thatBug.pregnant;
         }
 
-        function timeToTurn() {
-            return thisBug.steps % thisBug.turnSteps == 0 && bounceCycles >= thisBug.bounceSteps > 0;
-        }
-
-        function turn() {
-            thisBug.direction += randomSign() * thisBug.turnAmount;
-            // thatBug.direction = thisBug.direction % (2 * pi);
-        }
-
-        function startBounce() {
-            if (thisBug.bounceSteps == bounceCycles) {
-                console.log('startBounce');
-                // exChanging directions
+        function bounce() {
+            if (!thisBug.lockDirection && !thatBug.lockDirection) {
                 thisBug.direction += pi / 2;
-                // start countdown
-                thisBug.bounceSteps--;
+                thisBug.bounced = true;
             }
         }
 
         function turnFaces() {
-            var dX = thisBug.x - thatBug.x;
-            var dY = thisBug.y - thatBug.y;
-            var angle = thisBug.direction;
-            if (Math.abs(dY) >= Math.abs(dX) && Math.abs(dX) > 0) {
-                angle = Math.acos(dX / dY);
-            } else {
-                angle = Math.asin(dY / dX);
+            if (!thisBug.lockDirection && !thatBug.lockDirection) {
+                var dX = thisBug.x - thatBug.x;
+                var dY = thisBug.y - thatBug.y;
+                var angle = thisBug.direction;
+                if (Math.abs(dY) >= Math.abs(dX) && Math.abs(dX) > 0) {
+                    angle = Math.acos(dX / dY);
+                } else {
+                    angle = Math.asin(dY / dX);
+                }
+                thisBug.direction = angle;
+                thatBug.direction = angle + pi;
             }
-            thisBug.direction = angle;
-            thatBug.direction = angle + pi;
         }
 
         function fertilize() {
             if (thisBug.gender == 0) {
                 thisBug.pregnant = true;
-                thatBug.pregnant = false;
                 thisBug.partner = thatBug.id;
             }
             if (thatBug.gender == 0) {
                 thatBug.pregnant = true;
-                thisBug.pregnant = false;
                 thatBug.partner = thisBug.id;
             }
         }
 
         function fertile() {
-            return differentGenders() && bothAdult();
+            return differentGenders() && bothAdult() && !thisBug.pregnant && !thatBug.pregnant;
+        }
+
+        function lockDirections(val) {
+            thisBug.lockDirection = val;
+            thatBug.lockDirection = val;
         }
 
         for (var i = 0; i < bugs.length; i++) {
             var thisBug = bugs[i];
             if (lastAdultBug()) {
-                // There's only one bugger left so it'd better reproduce.
                 giveBirth(thisBug);
             } else {
-                // There's more of them buggers
                 for (var j = 0; j < bugs.length; j++) {
                     if (i !== j) {
                         var thatBug = bugs[j];
-                        if (approaching()) {
+                        if (fertile() && inRange(feromoneRange)) {
+                            turnFaces();
+                            lockDirections(true);
+                        }
+                        if (together()) {
                             if (fertile()) {
-                                turnFaces();
                                 fertilize();
-                                if (fullTerm()) {
-                                    giveBirth(thisBug);
-                                }
                             } else {
-                                // They're not fertile
-                                startBounce();
+                                bounce();
+                                lockDirections(true);
                             }
-                        } else {
-                            // They're heading into open space
-                            if (timeToTurn()) {
-                                turn();
-                            }
+                        }
+                        if (fullTerm()) {
+                            giveBirth(thisBug);
                         }
                     }
                 }
             }
+        }
+    }
+
+    // If parent exists return part of its fat
+    function mother(momId) {
+        var motherBug = $.grep(bugs, function (bug) { return bug.id == momId });
+        if (motherBug.length) {
+            return motherBug[0];
+        } else {
+            return null;
         }
     }
 
@@ -509,13 +517,16 @@ $(function () {
                 return this.fat > adultFat;
             },
             alive: true,
-            bounceSteps: bounceCycles,
+            bounced: false,
+            bounceSteps: 0,
             direction: Math.random() * 2 * pi,
             fat: 2 * minBugFat,
             gender: random01(),
             generation: 0,
             id: bugId++,
+            lockDirection: false,
             maxRadius: 15,
+            motherId: null,
             offspring: 0,
             partner: null,
             poopFrequency: Math.floor(Math.random() * 40 + 10),
@@ -546,17 +557,42 @@ $(function () {
                 }
                 return "rgba(" + rgbVal + ")";
             },
+            timeToTurn: function () {
+                return this.steps % this.turnSteps == 0 && bounceCycles >= this.bounceSteps && this.bounceSteps > 0 && !this.lockDirection;
+            },
+            turn: function () {
+                this.direction += randomSign() * this.turnAmount;
+            },
             move: function () {
                 if (this.fat < this.remnantCells) {
                     this.alive = false;
                 } else {
+                    if (this.timeToTurn()) {
+                        this.turn();
+                    }
                     this.x = fixedDecimals(xWrap(this.x + Math.cos(this.direction)));
                     this.y = fixedDecimals(yWrap(this.y + Math.sin(this.direction)));
-                    this.fat -= Math.log10(this.fat) / 2;
+                    this.fat -= Math.log10(this.fat) / 3;
                     this.radius = Math.min(fatToRadius(this.fat), this.maxRadius);
                     this.steps++;
+                    if (this.steps < newBornSteps) {
+                        var mom = mother(this.motherId);
+                        if (mom) {
+                            mom.fat--;
+                            this.fat++;
+                            this.direction = mom.direction;
+                        }
+                    } else {
+                        this.lockDirection = false;
+                    }
                     this.recoverySteps += (this.pregnant) ? 1 : 0;
-                    this.bounceSteps = (bounceCycles > this.bounceSteps && this.bounceSteps > 0) ? this.bounceSteps - 1 : bounceCycles;
+                    if (this.bounced && this.bounceSteps >= bounceCycles) {
+                        this.bounceSteps++;
+                    } else {
+                        this.bounceSteps = 0;
+                        this.bounced = false;
+                        this.lockDirection = false;
+                    }
                     if (this.steps % this.poopFrequency == 0) {
                         this.poop();
                     }
@@ -565,9 +601,7 @@ $(function () {
             feed: function () {
                 if (this.alive) {
                     this.fat += cellNutritionValue;
-                    // if (this.steps % this.turnSteps == 0) {
                     this.direction = (this.direction + this.turnDirection() * this.turnAmount) % (pi * 2);
-                    // }
                 }
             },
             poop: function () {
@@ -842,6 +876,7 @@ $(function () {
                 // $tr.append('<td>' + this.y + '</td>');
                 // $tr.append('<td>' + fixedDecimals(this.direction / pi, 2) + '</td>');
                 // $tr.append('<td>' + fixedDecimals(thisBug.bounceSteps) + '</td>');
+                // $tr.append('<td>' + fixedDecimals(thisBug.recoverySteps) + '</td>');
                 $tr.append('<td>' + fixedDecimals(thisBug.turnAmount) + '</td>');
                 $tr.append('<td>' + fixedDecimals(thisBug.turnSteps) + '</td>');
                 $tr.append('<td>' + thisBug.offspring + '</td>');
