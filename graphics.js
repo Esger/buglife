@@ -278,7 +278,7 @@ $(function () {
                 //     ctx.strokeStyle = "rgba(255,255,255,0.9)";
                 //     ctx.stroke();
                 // }
-                ctx.font = "10px Arial";
+                // ctx.font = "10px Arial";
                 ctx.fillText(bug.id, bug.x - 5, bug.y + 3);
             }
         }
@@ -480,14 +480,14 @@ $(function () {
                     if (i !== j) {
                         var thatBug = bugs[j];
                         if (fertile() && inRange(feromoneRange)) {
-                            turnFaces();
+                            turnFaces(); // check
                             lockDirections(true);
                         }
                         if (together()) {
                             if (fertile()) {
                                 fertilize();
                             } else {
-                                bounce();
+                                bounce(); // check
                                 lockDirections(true);
                             }
                         }

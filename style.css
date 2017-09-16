@@ -18,6 +18,7 @@ body {
 
 #container {
     flex            : 0 0 750px;
+    margin          : 0 auto;
     display         : flex;
     flex-direction  : column;
     justify-content : flex-start;
@@ -59,7 +60,10 @@ ul {
 
 form {
     display: block;
-    width  : 700px;
+}
+
+fieldset {
+    border: none;
 }
 
 input, label {
@@ -111,12 +115,12 @@ canvas {
 }
 
 #controls {
-    width        : 700px;
-    left         : 50px;
-    margin-bottom: 12px;
+    display        : flex;
+    justify-content: space-between;
+    margin-bottom  : 12px;
 }
 
-#controls a {
+#steppingcontrols a {
     display          : block;
     float            : left;
     width            : 24px;
@@ -178,12 +182,6 @@ canvas {
     background-position: -50px -125px;
 }
 
-#controls #bugbutton {
-    width           : auto;
-    float           : right;
-    background-image: none;
-}
-
 #controls a.toggler, #data a.toggler {
     width           : auto;
     float           : right;
@@ -206,6 +204,12 @@ a.toggler:hover {
 
 #controls a.hidden, .hidden {
     display: none;
+}
+
+#panels {
+    display       : flex;
+    flex-direction: column;
+    align-items   : flex-end;
 }
 
 #ads {
