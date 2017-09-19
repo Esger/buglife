@@ -11,13 +11,13 @@ $(function () {
 
         bugId = 1,
         adultFat = 1500,
-        bounceCycles = 100,
+        bounceCycles = 30,
         bugs = [],
         bugsYscale,
         cellNutritionValue = 3,
         cellsAlive, // Number of cells alive
         cellSize = 1, // Width and heigth of a cell in pixels
-        feromoneRange = 100,
+        feromoneRange = 150,
         fillRatio = 20, // Percentage of available cells that will be set alive initially (20)
         dataCycle = 10,
         deadBugCells = [],
@@ -37,16 +37,17 @@ $(function () {
         pregnancySteps = 100,
         running = false,
         showGraph = false,
-        showData = true,
+        showData = false,
         showIds = false,
         spaceHeight = (canvas.height / cellSize),
         spaceWidth = (canvas.width / cellSize),
         speed = 0,
         speedHandle = null,
-        startBugsCount = 11,
+        startBugsCount = 17,
         startnumberLivecells = numberCells * fillRatio / 100,
         steps = 0, // Number of iterations / steps done
         walkers = [],
+        xScale = 2, // x scale of graph
         yScale = 5 * graphCanvas.height / numberCells; //Ratio to apply values on y-axis
 
     function maleCount() {
@@ -165,7 +166,6 @@ $(function () {
 
     // Draw the array with livecells
     function drawGraph() {
-        var xScale = 2;
         var scaledSteps = Math.round(steps / xScale);
         if (steps % xScale == 0) {
             var ctx = graphCanvas.getContext('2d');
@@ -273,12 +273,6 @@ $(function () {
             ctx.fill();
             ctx.fillStyle = "rgb(255,255,255)";
             if (showData) {
-                // show border when bouncing
-                // if (bug.steps % bug.bounceSteps < bounceCycles) {
-                //     ctx.strokeStyle = "rgba(255,255,255,0.9)";
-                //     ctx.stroke();
-                // }
-                // ctx.font = "10px Arial";
                 ctx.fillText(bug.id, bug.x - 5, bug.y + 3);
             }
         }
@@ -429,25 +423,31 @@ $(function () {
             return thisBug.adult() && thatBug.adult() && !thisBug.pregnant && !thatBug.pregnant;
         }
 
-        function bounce() {
-            if (!thisBug.lockDirection && !thatBug.lockDirection) {
-                thisBug.direction += pi / 2;
-                thisBug.bounced = true;
-            }
+        function calcAngle() {
+            var dX = thatBug.x - thisBug.x;
+            var dY = thatBug.y - thisBug.y;
+            var distance = Math.sqrt(Math.pow((dX), 2) + Math.pow((dY), 2));
+            var angle = Math.atan(dY / dX);
+            return angle;
         }
 
         function turnFaces() {
+            var angle;
             if (!thisBug.lockDirection && !thatBug.lockDirection) {
-                var dX = thisBug.x - thatBug.x;
-                var dY = thisBug.y - thatBug.y;
-                var angle = thisBug.direction;
-                if (Math.abs(dY) >= Math.abs(dX) && Math.abs(dX) > 0) {
-                    angle = Math.acos(dX / dY);
-                } else {
-                    angle = Math.asin(dY / dX);
-                }
+                angle = calcAngle();
                 thisBug.direction = angle;
                 thatBug.direction = angle + pi;
+                thisBug.lockDirection = true;
+                thatBug.lockDirection = true;
+            }
+        }
+
+        function bounce() {
+            var angle;
+            if (!thisBug.lockDirection) {
+                angle = calcAngle();
+                thisBug.direction += angle + pi;
+                thisBug.lockDirection = true;
             }
         }
 
@@ -463,12 +463,7 @@ $(function () {
         }
 
         function fertile() {
-            return differentGenders() && bothAdult() && !thisBug.pregnant && !thatBug.pregnant;
-        }
-
-        function lockDirections(val) {
-            thisBug.lockDirection = val;
-            thatBug.lockDirection = val;
+            return differentGenders() && bothAdult() && !thisBug.pregnant;
         }
 
         for (var i = 0; i < bugs.length; i++) {
@@ -481,14 +476,12 @@ $(function () {
                         var thatBug = bugs[j];
                         if (fertile() && inRange(feromoneRange)) {
                             turnFaces(); // check
-                            lockDirections(true);
                         }
                         if (together()) {
                             if (fertile()) {
                                 fertilize();
                             } else {
                                 bounce(); // check
-                                lockDirections(true);
                             }
                         }
                         if (fullTerm()) {
@@ -517,7 +510,6 @@ $(function () {
                 return this.fat > adultFat;
             },
             alive: true,
-            bounced: false,
             bounceSteps: 0,
             direction: Math.random() * 2 * pi,
             fat: 2 * minBugFat,
@@ -535,7 +527,7 @@ $(function () {
             recoverySteps: 0,
             remnantCells: minBugFat,
             steps: 0,
-            turnAmount: Math.random() * pi / 2,
+            turnAmount: Math.random() * pi / 4,
             turnDirection: randomSign,
             turnSteps: Math.round(Math.random() * 100),
             x: fixedDecimals((Math.random() * spaceWidth) * cellSize, 2),
@@ -558,7 +550,7 @@ $(function () {
                 return "rgba(" + rgbVal + ")";
             },
             timeToTurn: function () {
-                return this.steps % this.turnSteps == 0 && bounceCycles >= this.bounceSteps && this.bounceSteps > 0 && !this.lockDirection;
+                return this.steps % this.turnSteps == 0 && !this.lockDirection;
             },
             turn: function () {
                 this.direction += randomSign() * this.turnAmount;
@@ -583,14 +575,15 @@ $(function () {
                             this.direction = mom.direction;
                         }
                     } else {
-                        this.lockDirection = false;
+                        if (this.steps == newBornSteps) {
+                            this.lockDirection = false;
+                        }
                     }
                     this.recoverySteps += (this.pregnant) ? 1 : 0;
-                    if (this.bounced && this.bounceSteps >= bounceCycles) {
+                    if (this.lockDirection && this.bounceSteps <= bounceCycles) {
                         this.bounceSteps++;
                     } else {
                         this.bounceSteps = 0;
-                        this.bounced = false;
                         this.lockDirection = false;
                     }
                     if (this.steps % this.poopFrequency == 0) {
@@ -601,7 +594,9 @@ $(function () {
             feed: function () {
                 if (this.alive) {
                     this.fat += cellNutritionValue;
-                    this.direction = (this.direction + this.turnDirection() * this.turnAmount) % (pi * 2);
+                    if (!this.lockDirection) {
+                        this.direction = (this.direction + this.turnDirection() * this.turnAmount) % (pi * 2);
+                    }
                 }
             },
             poop: function () {
@@ -662,7 +657,7 @@ $(function () {
         if (showGraph) {
             drawGraph();
         }
-        if (steps % canvas.width == 0) {
+        if (steps % (canvas.width * xScale) == 0) {
             fadeGraph();
         }
     }
