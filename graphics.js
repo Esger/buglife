@@ -6,8 +6,13 @@ $(function () {
         $teller = $('#teller'),
         $cellsAlive = $('#cellsalive'),
         $speed = $('#speed'),
+        $bugCount = $('#bugCount'),
         $bugData = $('#bugData table'),
         $cellNutritionValue = $('.cellNutrition'),
+        bugImages = [
+            [$('.bug-0')[0], $('.bug_0')[0]],
+            [$('.bug-1')[0], $('.bug_1')[0]]
+        ],
 
         bugId = 1,
         adultFat = 1500,
@@ -189,6 +194,7 @@ $(function () {
         $teller.text(steps);
         $cellsAlive.text(cellsAlive);
         $speed.text(speed);
+        $bugCount.text(bugs.length);
     }
 
     // Set all neighbours to zero
@@ -266,21 +272,25 @@ $(function () {
     // Draw the bugs
     function drawBugs() {
         function drawBug(bug) {
-            var mouthWidth = pi / 4;
-            ctx.fillStyle = bug.color();
-            ctx.beginPath();
-            ctx.arc(bug.x, bug.y, bug.radius * cellSize, bug.direction + mouthWidth, bug.direction - mouthWidth);
-            ctx.fill();
-            ctx.fillStyle = "rgb(255,255,255)";
+            var adult = (bug.adult()) ? 1 : 0;
+            var image = bugImages[bug.gender][adult];
+            var scale = bug.radius / 16;
+            ctx.translate(bug.x, bug.y);
+            ctx.rotate(bug.direction - pi / 2);
+            ctx.scale(scale, scale);
+            ctx.drawImage(image, - 16, - 16);
+            ctx.fillStyle = "rgb(0,0,0)";
             if (showData) {
-                ctx.fillText(bug.id, bug.x - 5, bug.y + 3);
+                ctx.fillText(bug.id, - 6, - 2);
             }
         }
         var ctx = canvas.getContext('2d');
         var thisBug;
         for (var i = 0; i < bugs.length; i++) {
             var thisBug = bugs[i];
+            ctx.save();
             drawBug(thisBug);
+            ctx.restore();
         }
     }
 
@@ -338,7 +348,10 @@ $(function () {
         var partnerBug = bugs.filter(function (bug) {
             return bug.id === thisBug.partner;
         })[0];
-        var center = {};
+        var center = {
+            x: thisBug.x,
+            y: thisBug.y
+        };
         var strongestBug;
         var weakestBug;
         var oldestBug;
@@ -346,18 +359,10 @@ $(function () {
         if (partnerBug) {
             partnerBug.offspring++;
             partnerBug.fat -= 2 * minBugFat;
-            center = {
-                x: xWrap(Math.round((thisBug.x + partnerBug.x) / 2)),
-                y: yWrap(Math.round((thisBug.y + partnerBug.y) / 2))
-            };
             strongestBug = (thisBug.fat > partnerBug.fat) ? thisBug : partnerBug;
             weakestBug = (thisBug.fat < partnerBug.fat) ? thisBug : partnerBug;
             oldestBug = (thisBug.generation > partnerBug.generation) ? thisBug : partnerBug;
         } else {
-            center = {
-                x: thisBug.x,
-                y: thisBug.y
-            }
             strongestBug = thisBug;
             weakestBug = thisBug;
             oldestBug = thisBug;
@@ -375,8 +380,8 @@ $(function () {
         newBornBug.generation = oldestBug.generation + 1;
         newBornBug.lockDirection = true;
 
-        newBornBug.y = fixedDecimals(center.y + Math.cos(Math.random() * 2 * pi) * (Math.random() * 100 + strongestBug.radius));
-        newBornBug.x = fixedDecimals(center.x + Math.cos(Math.random() * 2 * pi) * (Math.random() * 100 + strongestBug.radius));
+        newBornBug.y = fixedDecimals(center.y + Math.cos(Math.random() * 2 * pi) * (Math.random() * 50 + thisBug.radius));
+        newBornBug.x = fixedDecimals(center.x + Math.cos(Math.random() * 2 * pi) * (Math.random() * 50 + thisBug.radius));
 
         newBornBug.turnSteps = Math.abs(Math.round(strongestBug.turnSteps + randomSign() * weakestBug.turnSteps / 2));
 
@@ -532,23 +537,6 @@ $(function () {
             turnSteps: Math.round(Math.random() * 100),
             x: fixedDecimals((Math.random() * spaceWidth) * cellSize, 2),
             y: fixedDecimals((Math.random() * spaceHeight) * cellSize, 2),
-            color: function () {
-                var rgbVal;
-                if (this.gender == 1) {
-                    if (this.adult()) {
-                        rgbVal = "255,77,77,0.7";
-                    } else {
-                        rgbVal = "128,0,0,0.7";
-                    }
-                } else {
-                    if (this.adult()) {
-                        rgbVal = "64,64,255,0.7";
-                    } else {
-                        rgbVal = "0,0,128,0.7";
-                    }
-                }
-                return "rgba(" + rgbVal + ")";
-            },
             timeToTurn: function () {
                 return this.steps % this.turnSteps == 0 && !this.lockDirection;
             },
@@ -856,12 +844,30 @@ $(function () {
 
     // Uit object halen?
     function showDataTable() {
-        $('#bugCount').text(bugs.length);
+        function color(thisBug) {
+            var rgbVal;
+            if (thisBug.gender == 1) {
+                if (thisBug.adult()) {
+                    rgbVal = "193,39,45,0.7";
+                } else {
+                    rgbVal = "193,0,0,0.7";
+                }
+            } else {
+                if (thisBug.adult()) {
+                    rgbVal = "0,113,188,0.7";
+                } else {
+                    rgbVal = "0,0,188,0.7";
+                }
+            }
+            return "rgba(" + rgbVal + ")";
+        };
+
+        $bugCount.text(bugs.length);
         for (var i = 0; i < bugs.length; i++) {
             var thisBug = bugs[i];
             var $oldTr = $bugData.find('tr#bug' + thisBug.id);
             if (thisBug.alive) {
-                var $tr = $('<tr style="color:' + thisBug.color() + ';" id="bug' + thisBug.id + '"></tr>');
+                var $tr = $('<tr style="color:' + color(thisBug) + ';" id="bug' + thisBug.id + '"></tr>');
                 $tr.append('<td>' + (thisBug.id + '').substr(-4) + '</td>');
                 $tr.append('<td>' + thisBug.gender + '</td>');
                 $tr.append('<td>' + Math.round(thisBug.fat) + '</td>');
