@@ -97,6 +97,7 @@ canvas {
     margin-bottom   : 18px;
     color           : #404000;
     font            : 8px bold 'trebuchet MS';
+    text-align      : center;
 }
 
 #thetoroid {
