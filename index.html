@@ -8,6 +8,57 @@
     <title>Conway&rsquo;s game of life - Lab by ashWare</title>
     <link rel="stylesheet"
           href="style.css" />
+    <link rel="apple-touch-icon"
+          sizes="57x57"
+          href="/apple-icon-57x57.png">
+    <link rel="apple-touch-icon"
+          sizes="60x60"
+          href="/apple-icon-60x60.png">
+    <link rel="apple-touch-icon"
+          sizes="72x72"
+          href="/apple-icon-72x72.png">
+    <link rel="apple-touch-icon"
+          sizes="76x76"
+          href="/apple-icon-76x76.png">
+    <link rel="apple-touch-icon"
+          sizes="114x114"
+          href="/apple-icon-114x114.png">
+    <link rel="apple-touch-icon"
+          sizes="120x120"
+          href="/apple-icon-120x120.png">
+    <link rel="apple-touch-icon"
+          sizes="144x144"
+          href="/apple-icon-144x144.png">
+    <link rel="apple-touch-icon"
+          sizes="152x152"
+          href="/apple-icon-152x152.png">
+    <link rel="apple-touch-icon"
+          sizes="180x180"
+          href="/apple-icon-180x180.png">
+    <link rel="icon"
+          type="image/png"
+          sizes="192x192"
+          href="/android-icon-192x192.png">
+    <link rel="icon"
+          type="image/png"
+          sizes="32x32"
+          href="/favicon-32x32.png">
+    <link rel="icon"
+          type="image/png"
+          sizes="96x96"
+          href="/favicon-96x96.png">
+    <link rel="icon"
+          type="image/png"
+          sizes="16x16"
+          href="/favicon-16x16.png">
+    <link rel="manifest"
+          href="/manifest.json">
+    <meta name="msapplication-TileColor"
+          content="#ffffff">
+    <meta name="msapplication-TileImage"
+          content="/ms-icon-144x144.png">
+    <meta name="theme-color"
+          content="#ffffff">
     <!-- <script type="text/javascript">
         var _gaq = _gaq || [];
         _gaq.push(['_setAccount', 'UA-2700808-7']);
@@ -210,12 +261,21 @@
                    title="wikipedia">Wikipedia</a> for an explanation of Conway&rsquo;s life. As life on it's own has a tendency to die out, I figured to introduce another life form that interacts with the cellular automata, to keep things going.</p>
             <ul>
                 <li>These 'bugs' that I introduced eat the life cells</li>
+                <li>The life cells have a certain nutrition value that adds up to the bugs fat</li>
                 <li>The more they eat, the more they grow - to a certain extent</li>
-                <li>As they move, they burn energy and eventually shrink again</li>
-                <li>They leave droppings behind in the form of small life gliders</li>
+                <li>As the bugs move, they need energy as well, which is provided by 'burning' their fat</li>
+                <li>As they grow heavier, they need relatively more energy to do a step</li>
+                <li>When not enough food is available, they can shrink again</li>
+                <li>They die when they don't get enough food and then scatter - in life cells :)</li>
+                <li>While moving they sense how much food they ate left and right, which steers them in that direction, some often and some less often.</li>
+                <li>Some turning stronger and some not</li>
+                <li>These quantifiable properties are being inherited from their parents, with some deviation</li>
                 <li>When they have grown enough, they can find a mate to reproduce with</li>
                 <li>Their offspring inherits properties like how much and how often they turn</li>
-                <li>They die when they don't get enough food and then scatter - in life cells :)</li>
+                <li>If the population of bugs reaches a certain number, they all become infertile until some others have died</li>
+                <li>As a last eyecandy, they leave droppings behind in the form of basic life gliders</li>
+                <li></li>
+
             </ul>
             <img src="images/bug-0.png"
                  class="bug-0">
