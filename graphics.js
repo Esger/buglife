@@ -6,6 +6,7 @@ $(function () {
         $teller = $('#teller'),
         $cellsAlive = $('#cellsalive'),
         $speed = $('#speed'),
+        $startBugCount = $('.startBugCount'),
         $bugCount = $('#bugCount'),
         $bugData = $('#bugData table'),
         $cellNutritionValue = $('.cellNutrition'),
@@ -856,6 +857,13 @@ $(function () {
     // Life cell nutrition value updaten
     $cellNutritionValue.on('change', function () {
         cellNutritionValue = parseInt($cellNutritionValue.val());
+    });
+
+    // init startBugCount;
+    $startBugCount.val(startBugsCount);
+    // startBugCount updaten
+    $startBugCount.on('change', function () {
+        startBugsCount = parseInt($startBugCount.val());
     });
 
     // Uit object halen?
