@@ -126,6 +126,11 @@ canvas {
     width: 700px;
 }
 
+#story ul {
+    margin     : 10px 0 10px 17px;
+    text-indent: -17px;
+}
+
 #controls {
     display         : -webkit-box;
     display         : -ms-flexbox;
