@@ -83,12 +83,12 @@ input, label {
     font : 12px bold 'trebuchet MS';
 }
 
-#liferules input, .cellNutrition, .cellsizer, .history, .trails {
+#liferules input, .cellsizer, .history, .trails, input[type='number'] {
     margin: 0 3px 0 10px;
 }
 
-.cellNutrition {
-    width: 50px;
+input[type='number'] {
+    width: 30px;
 }
 
 canvas {
@@ -124,6 +124,11 @@ canvas {
 
 #story {
     width: 700px;
+}
+
+#story ul {
+    margin     : 10px 0 10px 17px;
+    text-indent: -17px;
 }
 
 #controls {

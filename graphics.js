@@ -6,6 +6,7 @@ $(function () {
         $teller = $('#teller'),
         $cellsAlive = $('#cellsalive'),
         $speed = $('#speed'),
+        $startBugCount = $('.startBugCount'),
         $bugCount = $('#bugCount'),
         $bugData = $('#bugData table'),
         $cellNutritionValue = $('.cellNutrition'),
@@ -226,10 +227,19 @@ $(function () {
         function inCircle(x, y, bug) {
             return ((Math.pow(x - bug.x, 2) + Math.pow(y - bug.y, 2)) < Math.pow(bug.radius, 2));
         }
+        function whichSide(x, y, bug) {
+            var front = {
+                x: Math.cos(bug.direction) * bug.radius,
+                y: Math.sin(bug.direction) * bug.radius
+            }
+            var a = front.x - bug.x / front.y - bug.y;
+            var b = bug.y - bug.x * a;
+            return y > a * x + b;
+        }
         for (var count in bugs) {
             thisBug = bugs[count];
             if (inCircle(x, y, thisBug)) {
-                thisBug.feed();
+                thisBug.feed(whichSide(x, y, thisBug));
                 return true;
             }
         }
@@ -376,16 +386,16 @@ $(function () {
 
         var newBornBug = new randomBug();
         newBornBug.Id = thisBug.id;
-        newBornBug.motherId = thisBug.id;
+        newBornBug.parentId = (thisBug.gender == 0) ? thisBug.id : partnerBug.id;
         newBornBug.generation = oldestBug.generation + 1;
         newBornBug.lockDirection = true;
 
         newBornBug.y = fixedDecimals(center.y + Math.cos(Math.random() * 2 * pi) * (Math.random() * 50 + thisBug.radius));
         newBornBug.x = fixedDecimals(center.x + Math.cos(Math.random() * 2 * pi) * (Math.random() * 50 + thisBug.radius));
 
-        newBornBug.turnSteps = Math.abs(Math.round(strongestBug.turnSteps + randomSign() * weakestBug.turnSteps / 2));
+        newBornBug.turnSteps = Math.abs(Math.round(strongestBug.turnSteps + randomSign() * weakestBug.turnSteps / 10));
 
-        newBornBug.turnAmount = (strongestBug.turnAmount + randomSign() * Math.random() * weakestBug.turnAmount) % (pi * 2);
+        newBornBug.turnAmount = (strongestBug.turnAmount + randomSign() * Math.random() * weakestBug.turnAmount / 10) % (pi * 2);
 
         newBornBug.poopFrequency = Math.round(strongestBug.poopFrequency + randomSign() * weakestBug.poopFrequency / 10);
         bugs.push(newBornBug);
@@ -451,7 +461,7 @@ $(function () {
             var angle;
             if (!thisBug.lockDirection) {
                 angle = calcAngle();
-                thisBug.direction += angle + pi;
+                thisBug.direction += angle + pi / 2;
                 thisBug.lockDirection = true;
             }
         }
@@ -468,7 +478,7 @@ $(function () {
         }
 
         function fertile() {
-            return differentGenders() && bothAdult() && !thisBug.pregnant;
+            return differentGenders() && bothAdult() && !thisBug.pregnant && bugs.length < 23;
         }
 
         for (var i = 0; i < bugs.length; i++) {
@@ -499,7 +509,7 @@ $(function () {
     }
 
     // If parent exists return part of its fat
-    function mother(momId) {
+    function parent(momId) {
         var motherBug = $.grep(bugs, function (bug) { return bug.id == momId });
         if (motherBug.length) {
             return motherBug[0];
@@ -518,12 +528,14 @@ $(function () {
             bounceSteps: 0,
             direction: Math.random() * 2 * pi,
             fat: 2 * minBugFat,
+            foodLeft: 0,
+            foodRight: 0,
             gender: random01(),
             generation: 0,
             id: bugId++,
             lockDirection: false,
             maxRadius: 15,
-            motherId: null,
+            parentId: null,
             offspring: 0,
             partner: null,
             poopFrequency: Math.floor(Math.random() * 40 + 10),
@@ -540,51 +552,56 @@ $(function () {
             timeToTurn: function () {
                 return this.steps % this.turnSteps == 0 && !this.lockDirection;
             },
-            turn: function () {
-                this.direction += randomSign() * this.turnAmount;
+            turn: function (right) {
+                var sign = (right) ? 1 : -1;
+                this.direction += sign * this.turnAmount;
             },
             move: function () {
-                if (this.fat < this.remnantCells) {
-                    this.alive = false;
+                if (this.timeToTurn()) {
+                    var right = this.foodRight > this.foodLeft;
+                    this.turn(right);
+                    this.foodRight = 0;
+                    this.foodLeft = 0;
+                }
+                this.x = fixedDecimals(xWrap(this.x + Math.cos(this.direction)));
+                this.y = fixedDecimals(yWrap(this.y + Math.sin(this.direction)));
+                this.fat -= Math.log10(this.fat) / 3;
+                this.radius = Math.min(fatToRadius(this.fat), this.maxRadius);
+                this.steps++;
+                if (this.steps < newBornSteps) {
+                    var parentBug = parent(this.parentId);
+                    if (parentBug) {
+                        parentBug.fat--;
+                        this.fat++;
+                        this.direction = parentBug.direction;
+                    }
                 } else {
-                    if (this.timeToTurn()) {
-                        this.turn();
-                    }
-                    this.x = fixedDecimals(xWrap(this.x + Math.cos(this.direction)));
-                    this.y = fixedDecimals(yWrap(this.y + Math.sin(this.direction)));
-                    this.fat -= Math.log10(this.fat) / 3;
-                    this.radius = Math.min(fatToRadius(this.fat), this.maxRadius);
-                    this.steps++;
-                    if (this.steps < newBornSteps) {
-                        var mom = mother(this.motherId);
-                        if (mom) {
-                            mom.fat--;
-                            this.fat++;
-                            this.direction = mom.direction;
-                        }
-                    } else {
-                        if (this.steps == newBornSteps) {
-                            this.lockDirection = false;
-                        }
-                    }
-                    this.recoverySteps += (this.pregnant) ? 1 : 0;
-                    if (this.lockDirection && this.bounceSteps <= bounceCycles) {
-                        this.bounceSteps++;
-                    } else {
-                        this.bounceSteps = 0;
+                    if (this.steps == newBornSteps) {
                         this.lockDirection = false;
                     }
-                    if (this.steps % this.poopFrequency == 0) {
-                        this.poop();
-                    }
+                }
+                this.recoverySteps += (this.pregnant) ? 1 : 0;
+                if (this.lockDirection && this.bounceSteps <= bounceCycles) {
+                    this.bounceSteps++;
+                } else {
+                    this.bounceSteps = 0;
+                    this.lockDirection = false;
+                }
+                if (this.steps % this.poopFrequency == 0) {
+                    this.poop();
+                }
+                if (this.fat < this.remnantCells) {
+                    this.alive = false;
                 }
             },
-            feed: function () {
+            feed: function (right) {
                 if (this.alive) {
-                    this.fat += cellNutritionValue;
-                    if (!this.lockDirection) {
-                        this.direction = (this.direction + this.turnDirection() * this.turnAmount) % (pi * 2);
+                    if (right) {
+                        this.foodRight++;
+                    } else {
+                        this.foodLeft++;
                     }
+                    this.fat += cellNutritionValue;
                 }
             },
             poop: function () {
@@ -840,6 +857,13 @@ $(function () {
     // Life cell nutrition value updaten
     $cellNutritionValue.on('change', function () {
         cellNutritionValue = parseInt($cellNutritionValue.val());
+    });
+
+    // init startBugCount;
+    $startBugCount.val(startBugsCount);
+    // startBugCount updaten
+    $startBugCount.on('change', function () {
+        startBugsCount = parseInt($startBugCount.val());
     });
 
     // Uit object halen?

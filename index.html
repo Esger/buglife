@@ -8,7 +8,58 @@
     <title>Conway&rsquo;s game of life - Lab by ashWare</title>
     <link rel="stylesheet"
           href="style.css" />
-    <!-- <script type="text/javascript">
+    <link rel="apple-touch-icon"
+          sizes="57x57"
+          href="apple-icon-57x57.png">
+    <link rel="apple-touch-icon"
+          sizes="60x60"
+          href="apple-icon-60x60.png">
+    <link rel="apple-touch-icon"
+          sizes="72x72"
+          href="apple-icon-72x72.png">
+    <link rel="apple-touch-icon"
+          sizes="76x76"
+          href="apple-icon-76x76.png">
+    <link rel="apple-touch-icon"
+          sizes="114x114"
+          href="apple-icon-114x114.png">
+    <link rel="apple-touch-icon"
+          sizes="120x120"
+          href="apple-icon-120x120.png">
+    <link rel="apple-touch-icon"
+          sizes="144x144"
+          href="apple-icon-144x144.png">
+    <link rel="apple-touch-icon"
+          sizes="152x152"
+          href="apple-icon-152x152.png">
+    <link rel="apple-touch-icon"
+          sizes="180x180"
+          href="apple-icon-180x180.png">
+    <link rel="icon"
+          type="image/png"
+          sizes="192x192"
+          href="android-icon-192x192.png">
+    <link rel="icon"
+          type="image/png"
+          sizes="32x32"
+          href="favicon-32x32.png">
+    <link rel="icon"
+          type="image/png"
+          sizes="96x96"
+          href="favicon-96x96.png">
+    <link rel="icon"
+          type="image/png"
+          sizes="16x16"
+          href="favicon-16x16.png">
+    <link rel="manifest"
+          href="manifest.json">
+    <meta name="msapplication-TileColor"
+          content="#ffffff">
+    <meta name="msapplication-TileImage"
+          content="ms-icon-144x144.png">
+    <meta name="theme-color"
+          content="#ffffff">
+    <script type="text/javascript">
         var _gaq = _gaq || [];
         _gaq.push(['_setAccount', 'UA-2700808-7']);
         _gaq.push(['_trackPageview']);
@@ -18,7 +69,7 @@
             ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
             var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
         })();
-    </script> -->
+    </script>
 </head>
 
 <body>
@@ -57,6 +108,7 @@
                        title="Random"></a>
                     <label><input class="trails" type="checkbox" checked /> Trails</label>
                     <label><input class="cellNutrition" type="number" value="3" step="0.05" /> Cell Nutrition Value</label>
+                    <label><input class="startBugCount" type="number" value="3" step="1" /> Bugs to start with</label>
                 </fieldset>
                 <fieldset id="data">
                     <p>Generations (x-axis): <span id="teller">0</span> - Live cells (y-axis): <span id="cellsalive">0</span> -
@@ -210,12 +262,20 @@
                    title="wikipedia">Wikipedia</a> for an explanation of Conway&rsquo;s life. As life on it's own has a tendency to die out, I figured to introduce another life form that interacts with the cellular automata, to keep things going.</p>
             <ul>
                 <li>These 'bugs' that I introduced eat the life cells</li>
+                <li>The life cells have a certain nutrition value that adds up to the bugs fat</li>
                 <li>The more they eat, the more they grow - to a certain extent</li>
-                <li>As they move, they burn energy and eventually shrink again</li>
-                <li>They leave droppings behind in the form of small life gliders</li>
-                <li>When they have grown enough, they can find a mate to reproduce with</li>
-                <li>Their offspring inherits properties like how much and how often they turn</li>
+                <li>As the bugs move, they need energy as well, which is provided by 'burning' their fat</li>
+                <li>As they grow heavier, they need relatively more energy to do a step</li>
+                <li>When not enough food is available, they can shrink again</li>
                 <li>They die when they don't get enough food and then scatter - in life cells :)</li>
+                <li>While moving they sense how much food they ate left and right, which steers them in that direction, some often and some less often.</li>
+                <li>Some turning stronger and some not</li>
+                <li>Normally the bugs will try to not touch each other</li>
+                <li>These quantifiable properties are being inherited from their parents, with some deviation</li>
+                <li>When they have grown enough, they can find a mate to reproduce with</li>
+                <li>If the population of bugs reaches a certain number, they all become infertile until some others have died</li>
+                <li>As a last eyecandy, they leave droppings behind in the form of basic life gliders</li>
+
             </ul>
             <img src="images/bug-0.png"
                  class="bug-0">
@@ -225,6 +285,7 @@
                  class="bug_0">
             <img src="images/bug_1.png"
                  class="bug_1">
+            <p>The question is: Will a bug with a certain set of properties evolve as more successful?</p>
 
             <h2>Experiment</h2>
             <ul>
@@ -253,8 +314,8 @@
     <script src="graphics.js"
             type="text/javascript"></script>
     <!-- Plaats deze tag in de header of net voordat u de bodytag sluit -->
-    <!-- <script type="text/javascript"
-            src="https://apis.google.com/js/plusone.js"></script> -->
+    <script type="text/javascript"
+            src="https://apis.google.com/js/plusone.js"></script>
 </body>
 
 </html>
