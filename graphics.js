@@ -910,6 +910,7 @@ $(function () {
                 // $tr.append('<td>' + fixedDecimals(thisBug.recoverySteps) + '</td>');
                 $tr.append('<td>' + fixedDecimals(thisBug.turnAmount) + '</td>');
                 $tr.append('<td>' + fixedDecimals(thisBug.turnSteps) + '</td>');
+                $tr.append('<td>' + fixedDecimals(thisBug.poopFrequency) + '</td>');
                 $tr.append('<td>' + thisBug.offspring + '</td>');
                 $tr.append('<td>' + thisBug.generation + '</td>');
                 if ($oldTr.length) {
