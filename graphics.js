@@ -83,10 +83,14 @@ $(function () {
         neighbours = [];
         bugs = [];
         walkers = [
-            [[-1, -1], [0, -1], [1, -1], [1, 0], [0, 1]], // up right
+            [[1, -2], [2, -1], [-2, 0], [2, 0], [-1, 1], [0, 1], [1, 1], [2, 1]], // right
             [[1, -1], [-1, 0], [1, 0], [0, 1], [1, 1]],   // down right
+            [[0, -2], [-1, -1], [-1, 0], [-1, 1], [2, 1], [-1, 2], [0, 2], [1, 2]], // down
             [[0, -1], [-1, 0], [-1, 1], [0, 1], [1, 1]],  // down left
-            [[-1, -1], [0, -1], [-1, 0], [1, 0], [-1, 1]] // up left
+            [[-1, -2], [-2, -1], [-2, 0], [2, 0], [-2, 1], [-1, 1], [0, 1], [1, 1]], // left
+            [[-1, -1], [0, -1], [-1, 0], [1, 0], [-1, 1]], // up left
+            [[-1, -2], [0, -2], [1, -2], [-1, -1], [2, -1], [-1, 0], [-1, 1], [0, 2]], // up
+            [[-1, -1], [0, -1], [1, -1], [1, 0], [0, 1]], // up right
         ];
         $bugData.find('tbody tr').remove();
         clearSpace();
@@ -231,7 +235,7 @@ $(function () {
             var front = {
                 x: Math.cos(bug.direction) * bug.radius,
                 y: Math.sin(bug.direction) * bug.radius
-            }
+            };
             var a = front.x - bug.x / front.y - bug.y;
             var b = bug.y - bug.x * a;
             return y > a * x + b;
@@ -297,7 +301,7 @@ $(function () {
         var ctx = canvas.getContext('2d');
         var thisBug;
         for (var i = 0; i < bugs.length; i++) {
-            var thisBug = bugs[i];
+            thisBug = bugs[i];
             ctx.save();
             drawBug(thisBug);
             ctx.restore();
@@ -510,7 +514,7 @@ $(function () {
 
     // If parent exists return part of its fat
     function parent(momId) {
-        var motherBug = $.grep(bugs, function (bug) { return bug.id == momId });
+        var motherBug = $.grep(bugs, function (bug) { return bug.id == momId; });
         if (motherBug.length) {
             return motherBug[0];
         } else {
@@ -554,7 +558,8 @@ $(function () {
             },
             turn: function (right) {
                 var sign = (right) ? 1 : -1;
-                this.direction += sign * this.turnAmount;
+                // this.direction += sign * this.turnAmount;
+                this.direction = (this.direction + sign * this.turnAmount) % (2 * pi);
             },
             move: function () {
                 if (this.timeToTurn()) {
@@ -607,8 +612,9 @@ $(function () {
             poop: function () {
                 var self = this,
                     poo = {},
-                    pooDirection = Math.abs(Math.round((4 * ((this.direction + 2.5 * pi) % (2 * pi)) - pi) / 2 / pi)),
-                    cells = [];
+                    // determin glider with opposite direction of bug
+                    pooDirection = Math.round(((this.direction + pi) % (2 * pi)) / pi * 4);
+                cells = [];
                 // console.log(pooDirection);
                 poo.x = Math.round(Math.cos(this.direction + pi) * (this.radius + 2) + self.x);
                 poo.y = Math.round(Math.sin(this.direction + pi) * (this.radius + 2) + self.y);
@@ -633,7 +639,7 @@ $(function () {
                 }
                 this.fat = 0;
             }
-        }
+        };
     }
 
     function addBugs(amount) {
@@ -688,7 +694,7 @@ $(function () {
             updateScreen();
         } else {
             // canvas-unsupported code here
-            document.write("If you see this, you&rsquo;d better install Firefox or Chrome or Opera or Safari or &hellip;");
+            $('.noCanvas').show();
         }
     }
 
@@ -904,6 +910,7 @@ $(function () {
                 // $tr.append('<td>' + fixedDecimals(thisBug.recoverySteps) + '</td>');
                 $tr.append('<td>' + fixedDecimals(thisBug.turnAmount) + '</td>');
                 $tr.append('<td>' + fixedDecimals(thisBug.turnSteps) + '</td>');
+                $tr.append('<td>' + fixedDecimals(thisBug.poopFrequency) + '</td>');
                 $tr.append('<td>' + thisBug.offspring + '</td>');
                 $tr.append('<td>' + thisBug.generation + '</td>');
                 if ($oldTr.length) {
