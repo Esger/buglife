@@ -386,16 +386,16 @@ $(function () {
 
         var newBornBug = new randomBug();
         newBornBug.Id = thisBug.id;
-        newBornBug.motherId = thisBug.id;
+        newBornBug.parentId = (thisBug.gender == 0) ? thisBug.id : partnerBug.id;
         newBornBug.generation = oldestBug.generation + 1;
         newBornBug.lockDirection = true;
 
         newBornBug.y = fixedDecimals(center.y + Math.cos(Math.random() * 2 * pi) * (Math.random() * 50 + thisBug.radius));
         newBornBug.x = fixedDecimals(center.x + Math.cos(Math.random() * 2 * pi) * (Math.random() * 50 + thisBug.radius));
 
-        newBornBug.turnSteps = Math.abs(Math.round(strongestBug.turnSteps + randomSign() * weakestBug.turnSteps / 2));
+        newBornBug.turnSteps = Math.abs(Math.round(strongestBug.turnSteps + randomSign() * weakestBug.turnSteps / 10));
 
-        newBornBug.turnAmount = (strongestBug.turnAmount + randomSign() * Math.random() * weakestBug.turnAmount) % (pi * 2);
+        newBornBug.turnAmount = (strongestBug.turnAmount + randomSign() * Math.random() * weakestBug.turnAmount / 10) % (pi * 2);
 
         newBornBug.poopFrequency = Math.round(strongestBug.poopFrequency + randomSign() * weakestBug.poopFrequency / 10);
         bugs.push(newBornBug);
@@ -509,7 +509,7 @@ $(function () {
     }
 
     // If parent exists return part of its fat
-    function mother(momId) {
+    function parent(momId) {
         var motherBug = $.grep(bugs, function (bug) { return bug.id == momId });
         if (motherBug.length) {
             return motherBug[0];
@@ -535,7 +535,7 @@ $(function () {
             id: bugId++,
             lockDirection: false,
             maxRadius: 15,
-            motherId: null,
+            parentId: null,
             offspring: 0,
             partner: null,
             poopFrequency: Math.floor(Math.random() * 40 + 10),
@@ -569,11 +569,11 @@ $(function () {
                 this.radius = Math.min(fatToRadius(this.fat), this.maxRadius);
                 this.steps++;
                 if (this.steps < newBornSteps) {
-                    var mom = mother(this.motherId);
-                    if (mom) {
-                        mom.fat--;
+                    var parentBug = parent(this.parentId);
+                    if (parentBug) {
+                        parentBug.fat--;
                         this.fat++;
-                        this.direction = mom.direction;
+                        this.direction = parentBug.direction;
                     }
                 } else {
                     if (this.steps == newBornSteps) {
