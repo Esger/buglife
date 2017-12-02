@@ -183,9 +183,9 @@ $(function () {
             ctx.fillStyle = "rgb(128, 128, 0)";
             ctx.fillRect(scaledSteps % graphCanvas.width, graphCanvas.height - cellsAlive * yScale, 1, 1);
             ctx.fillStyle = (scaledSteps % 2 == 0) ? "rgba(128,0,0,0.3)" : "rgba(0,0,0)";
-            ctx.fillRect(scaledSteps % graphCanvas.width, graphCanvas.height - maleCount() * 2, 1, 1);
+            ctx.fillRect(scaledSteps % graphCanvas.width, graphCanvas.height - maleCount() * 5, 1, 1);
             ctx.fillStyle = (scaledSteps % 2 == 0) ? "rgba(0,0,0)" : "rgba(0,0,128,0.3)";
-            ctx.fillRect(scaledSteps % graphCanvas.width, graphCanvas.height - femaleCount() * 2, 1, 1);
+            ctx.fillRect(scaledSteps % graphCanvas.width, graphCanvas.height - femaleCount() * 5, 1, 1);
         }
     }
 
