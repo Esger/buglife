@@ -83,7 +83,7 @@ input, label {
     font : 12px bold 'trebuchet MS';
 }
 
-#liferules input, .cellsizer, .history, .trails, input[type='number'] {
+#liferules input, .cellsizer, .flock, .history, .trails, input[type='number'] {
     margin: 0 3px 0 10px;
 }
 
