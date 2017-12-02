@@ -15,9 +15,9 @@ $(function () {
             [$('.bug-1')[0], $('.bug_1')[0]]
         ],
 
-        bugId = 1,
         adultFat = 1500,
         bounceCycles = 30,
+        bugId = 1,
         bugs = [],
         bugsYscale,
         cellNutritionValue = 3,
@@ -25,6 +25,7 @@ $(function () {
         cellSize = 1, // Width and heigth of a cell in pixels
         feromoneRange = 150,
         fillRatio = 20, // Percentage of available cells that will be set alive initially (20)
+        flocking = $('.flock').is(":checked"),
         dataCycle = 10,
         deadBugCells = [],
         deadBugs = [],
@@ -182,9 +183,9 @@ $(function () {
             ctx.fillStyle = "rgb(128, 128, 0)";
             ctx.fillRect(scaledSteps % graphCanvas.width, graphCanvas.height - cellsAlive * yScale, 1, 1);
             ctx.fillStyle = (scaledSteps % 2 == 0) ? "rgba(128,0,0,0.3)" : "rgba(0,0,0)";
-            ctx.fillRect(scaledSteps % graphCanvas.width, graphCanvas.height - maleCount() * 2, 1, 1);
+            ctx.fillRect(scaledSteps % graphCanvas.width, graphCanvas.height - maleCount() * 5, 1, 1);
             ctx.fillStyle = (scaledSteps % 2 == 0) ? "rgba(0,0,0)" : "rgba(0,0,128,0.3)";
-            ctx.fillRect(scaledSteps % graphCanvas.width, graphCanvas.height - femaleCount() * 2, 1, 1);
+            ctx.fillRect(scaledSteps % graphCanvas.width, graphCanvas.height - femaleCount() * 5, 1, 1);
         }
     }
 
@@ -401,7 +402,8 @@ $(function () {
 
         newBornBug.turnAmount = (strongestBug.turnAmount + randomSign() * Math.random() * weakestBug.turnAmount / 10) % (pi * 2);
 
-        newBornBug.poopFrequency = Math.round(strongestBug.poopFrequency + randomSign() * weakestBug.poopFrequency / 10);
+        newBornBug.poopSteps = Math.round(strongestBug.poopSteps + randomSign() * weakestBug.poopSteps / 10);
+
         bugs.push(newBornBug);
     }
 
@@ -445,7 +447,6 @@ $(function () {
         function calcAngle() {
             var dX = thatBug.x - thisBug.x;
             var dY = thatBug.y - thisBug.y;
-            var distance = Math.sqrt(Math.pow((dX), 2) + Math.pow((dY), 2));
             var angle = Math.atan(dY / dX);
             return angle;
         }
@@ -463,7 +464,7 @@ $(function () {
 
         function bounce() {
             var angle;
-            if (!thisBug.lockDirection) {
+            if (!flocking && !thisBug.lockDirection) {
                 angle = calcAngle();
                 thisBug.direction += angle + pi / 2;
                 thisBug.lockDirection = true;
@@ -522,6 +523,48 @@ $(function () {
         }
     }
 
+    function calcDistance(thisBug, thatBug) {
+        var dX = thisBug.x - thatBug.x;
+        var dY = thisBug.y - thatBug.y;
+        var distance = Math.sqrt(Math.pow((dX), 2) + Math.pow((dY), 2));
+        return distance;
+    }
+
+    function watchFlock(bug) {
+        var direction = 0;
+        var sinTotal = 0;
+        var cosTotal = 0;
+        var bugCount = bugs.length;
+        var nudge = pi / 16;
+        for (var i = 0; i < bugCount; i++) {
+            var thisBug = bugs[i];
+            // It's a freely moving bug not myself
+            if (thisBug.id !== bug.id && !thisBug.lockDirection) {
+                var distance = calcDistance(bug, thisBug);
+                // They're not too close, so let's convert
+                if (distance > bug.radius + thisBug.radius + 10) {
+                    distance = Math.pow(distance, 2);
+                    sinTotal += Math.sin(thisBug.direction) / distance;
+                    cosTotal += Math.cos(thisBug.direction) / distance;
+                } else {
+                    // Let's divert
+                    // var meanDirection = (thisBug.direction + bug.direction) / 2;
+                    if (Math.abs(thisBug.direction - bug.direction) > pi) {
+                        if (thisBug.direction > bug.direction) {
+                            thisBug.direction += nudge;
+                            bug.direction -= nudge;
+                        } else {
+                            thisBug.direction -= nudge;
+                            bug.direction += nudge;
+                        }
+                    }
+
+                }
+            }
+        }
+        bug.direction = (bug.direction + Math.atan(sinTotal / cosTotal)) / 2;
+    }
+
     // random bug object
     function randomBug() {
         return {
@@ -532,6 +575,7 @@ $(function () {
             bounceSteps: 0,
             direction: Math.random() * 2 * pi,
             fat: 2 * minBugFat,
+            flockSteps: Math.ceil(Math.random() * 25),
             foodLeft: 0,
             foodRight: 0,
             gender: random01(),
@@ -542,7 +586,7 @@ $(function () {
             parentId: null,
             offspring: 0,
             partner: null,
-            poopFrequency: Math.floor(Math.random() * 40 + 10),
+            poopSteps: Math.floor(Math.random() * 40 + 10),
             pregnant: false,
             radius: fatToRadius(this.remnantCells),
             recoverySteps: 0,
@@ -556,6 +600,9 @@ $(function () {
             timeToTurn: function () {
                 return this.steps % this.turnSteps == 0 && !this.lockDirection;
             },
+            timeToFlock: function () {
+                return flocking && this.steps % this.flockSteps == 0 && !this.lockDirection;
+            },
             turn: function (right) {
                 var sign = (right) ? 1 : -1;
                 // this.direction += sign * this.turnAmount;
@@ -567,6 +614,9 @@ $(function () {
                     this.turn(right);
                     this.foodRight = 0;
                     this.foodLeft = 0;
+                }
+                if (this.timeToFlock()) {
+                    watchFlock(this);
                 }
                 this.x = fixedDecimals(xWrap(this.x + Math.cos(this.direction)));
                 this.y = fixedDecimals(yWrap(this.y + Math.sin(this.direction)));
@@ -592,7 +642,7 @@ $(function () {
                     this.bounceSteps = 0;
                     this.lockDirection = false;
                 }
-                if (this.steps % this.poopFrequency == 0) {
+                if (this.steps % this.poopSteps == 0) {
                     this.poop();
                 }
                 if (this.fat < this.remnantCells) {
@@ -613,7 +663,7 @@ $(function () {
                 var self = this,
                     poo = {},
                     // determin glider with opposite direction of bug
-                    pooDirection = Math.round(((this.direction + pi) % (2 * pi)) / pi * 4);
+                    pooDirection = Math.round(((this.direction + pi) % (2 * pi)) / pi * 4) % 8;
                 cells = [];
                 // console.log(pooDirection);
                 poo.x = Math.round(Math.cos(this.direction + pi) * (this.radius + 2) + self.x);
@@ -719,6 +769,11 @@ $(function () {
         clearInterval(speedHandle);
     }
 
+    // Flocking switch
+    $('.flock').on('click', function () {
+        flocking = $('.flock').is(":checked");
+    });
+
     // Start life animation
     function startLife() {
         $('.trails').attr('checked', true);
@@ -791,12 +846,8 @@ $(function () {
     });
 
     // Toggle trails on or off
-    shortcut.add("insert", function () {
-        if ($('.trails').is(":checked")) {
-            $('.trails').attr('checked', false);
-        } else {
-            $('.trails').attr('checked', true);
-        }
+    shortcut.add("caps_lock", function () {
+        $('.trails').click();
     });
 
     // Add a bug
@@ -890,7 +941,7 @@ $(function () {
                 }
             }
             return "rgba(" + rgbVal + ")";
-        };
+        }
 
         $bugCount.text(bugs.length);
         for (var i = 0; i < bugs.length; i++) {
@@ -910,11 +961,11 @@ $(function () {
                 // $tr.append('<td>' + fixedDecimals(thisBug.recoverySteps) + '</td>');
                 $tr.append('<td>' + fixedDecimals(thisBug.turnAmount) + '</td>');
                 $tr.append('<td>' + fixedDecimals(thisBug.turnSteps) + '</td>');
-                $tr.append('<td>' + fixedDecimals(thisBug.poopFrequency) + '</td>');
+                $tr.append('<td>' + fixedDecimals(thisBug.poopSteps) + '</td>');
                 $tr.append('<td>' + thisBug.offspring + '</td>');
                 $tr.append('<td>' + thisBug.generation + '</td>');
                 if ($oldTr.length) {
-                    $oldTr.replaceWith($tr)
+                    $oldTr.replaceWith($tr);
                 } else {
                     $bugData.append($tr);
                 }
