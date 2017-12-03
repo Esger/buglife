@@ -539,24 +539,20 @@ $(function () {
         for (var i = 0; i < bugCount; i++) {
             var thisBug = bugs[i];
             // It's a freely moving bug not myself
-            if (thisBug.id !== bug.id && !thisBug.lockDirection) {
+            if (thisBug.id !== bug.id /*&& !thisBug.lockDirection*/) {
                 var distance = calcDistance(bug, thisBug);
                 // They're not too close, so let's convert
                 if (distance > bug.radius + thisBug.radius + 10) {
                     distance = Math.pow(distance, 2);
-                    sinTotal += Math.sin(thisBug.direction) / distance;
-                    cosTotal += Math.cos(thisBug.direction) / distance;
+                    sinTotal += thisBug.fat * Math.sin(thisBug.direction) / distance;
+                    cosTotal += thisBug.fat * Math.cos(thisBug.direction) / distance;
                 } else {
-                    // Let's divert
-                    // var meanDirection = (thisBug.direction + bug.direction) / 2;
-                    if (Math.abs(thisBug.direction - bug.direction) > pi) {
-                        if (thisBug.direction > bug.direction) {
-                            thisBug.direction += nudge;
-                            bug.direction -= nudge;
-                        } else {
-                            thisBug.direction -= nudge;
-                            bug.direction += nudge;
-                        }
+                    if (thisBug.fat < bug.fat) {
+                        thisBug.direction -= nudge;
+                        bug.direction += nudge;
+                    } else {
+                        thisBug.direction += nudge;
+                        bug.direction -= nudge;
                     }
 
                 }
@@ -575,7 +571,8 @@ $(function () {
             bounceSteps: 0,
             direction: Math.random() * 2 * pi,
             fat: 2 * minBugFat,
-            flockSteps: Math.ceil(Math.random() * 25),
+            flockSteps: 10 + Math.ceil(Math.random() * 25),
+            turnSteps: 25 + Math.round(Math.random() * 100),
             foodLeft: 0,
             foodRight: 0,
             gender: random01(),
@@ -594,7 +591,6 @@ $(function () {
             steps: 0,
             turnAmount: Math.random() * pi / 4,
             turnDirection: randomSign,
-            turnSteps: Math.round(Math.random() * 100),
             x: fixedDecimals((Math.random() * spaceWidth) * cellSize, 2),
             y: fixedDecimals((Math.random() * spaceHeight) * cellSize, 2),
             timeToTurn: function () {
