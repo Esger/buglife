@@ -362,6 +362,8 @@ $(function () {
 
     function giveBirth(thisBug) {
 
+        thisBug.goal = 'giving birth';
+
         var partnerBug = bugs.filter(function (bug) {
             return bug.id === thisBug.partner;
         })[0];
@@ -392,7 +394,6 @@ $(function () {
         thisBug.recoverySteps = 0;
 
         var newBornBug = new randomBug();
-        newBornBug.Id = thisBug.id;
         newBornBug.parentId = (thisBug.gender == 0) ? thisBug.id : partnerBug.id;
         newBornBug.generation = oldestBug.generation + 1;
 
@@ -431,15 +432,15 @@ $(function () {
     }
 
     function calcAngle(bug, pos) {
-        var dX = bug.x - pos[0];
-        var dY = bug.y - pos[1];
-        var angle = Math.atan(dY / dX);
+        var dX = pos[0] - bug.x;
+        var dY = pos[1] - bug.y;
+        var angle = Math.atan2(dY, dX);
         return angle;
     }
 
     // change bug direction towards given direction a bit
     function nudge(bug, direction) {
-        var tempDirection = (direction + bug.direction + 2 * pi) % (2 * pi);
+        var tempDirection = (direction - bug.direction + 4 * pi) % (2 * pi);
         var nudgeAngle = pi / 32;
         if (tempDirection > pi) {
             bug.direction -= nudgeAngle;
@@ -459,6 +460,7 @@ $(function () {
     }
 
     function diverge(bug, closeBugs) {
+        bug.goal = 'diverge';
         var xTotal = 0;
         var yTotal = 0;
         var meanPos = [];
@@ -481,34 +483,40 @@ $(function () {
     }
 
     function converge(bug) {
-        var convergingDistance = 50;
-        var xTotal = 0;
-        var yTotal = 0;
-        var sinTotal = 0;
-        var cosTotal = 0;
-        var meanPos = [];
-        var targetPoint = [];
-        var direction = 0;
-        var bugCount = bugs.length;
-        for (var i = 0; i < bugCount; i++) {
-            var thisBug = bugs[i];
-            if (thisBug.id !== bug.id) {
-                xTotal += thisBug.x;
-                yTotal += thisBug.y;
-                cosTotal += Math.cos(thisBug.direction);
-                sinTotal += Math.sin(thisBug.direction);
+        if (bugs.length > 1) {
+            bug.goal = 'converge';
+            var convergingDistance = 50;
+            var xTotal = 0;
+            var yTotal = 0;
+            var sinTotal = 0;
+            var cosTotal = 0;
+            // var meanSin = 0;
+            // var meanCos = 0;
+            var meanPos = [];
+            var targetPoint = [];
+            var direction = 0;
+            var bugCount = bugs.length;
+            for (var i = 0; i < bugCount; i++) {
+                var thisBug = bugs[i];
+                if (thisBug.id !== bug.id) {
+                    xTotal += thisBug.x;
+                    yTotal += thisBug.y;
+                    cosTotal += Math.cos(thisBug.direction);
+                    sinTotal += Math.sin(thisBug.direction);
+                }
             }
+
+            meanPos[0] = xTotal / (bugCount - 1);
+            meanPos[1] = yTotal / (bugCount - 1);
+            // meanCos = cosTotal / bugCount;
+            var meanDirection = Math.atan2(sinTotal, cosTotal);
+
+            targetPoint[0] = meanPos[0] + cosTotal * convergingDistance;
+            targetPoint[1] = meanPos[1] + sinTotal * convergingDistance;
+            var directionToTargetPos = calcAngle(bug, targetPoint);
+
+            nudge(bug, directionToTargetPos);
         }
-
-        meanPos[0] = xTotal / bugCount;
-        meanPos[1] = yTotal / bugCount;
-        var meanDirection = Math.atan(sinTotal / cosTotal);
-
-        targetPoint[0] = meanPos[0] + cosTotal * convergingDistance;
-        targetPoint[1] = meanPos[1] + sinTotal * convergingDistance;
-        var directionToTargetPos = calcAngle(bug, targetPoint);
-
-        nudge(bug, directionToTargetPos);
     }
 
     function watchForCloseBugs(bug) {
@@ -562,6 +570,8 @@ $(function () {
     }
 
     function fertilize(thisBug, thatBug) {
+        thisBug.goal = 'mating';
+
         if (thisBug.gender == 0) {
             thisBug.pregnant = true;
             thisBug.partner = thatBug.id;
@@ -590,36 +600,39 @@ $(function () {
         return closestCandidatePartner;
     }
 
+    function headForPartner(thisBug, thatBug) {
+        thisBug.goal = 'head for ' + thatBug.id;
+        var candidatePos = [thatBug.x, thatBug.y];
+        var candidateDirection = calcAngle(thisBug, candidatePos);
+        nudge(thisBug, candidateDirection);
+    }
+
     function navigate(bug) {
-        if (lastAdultBug()) {
+        if (fullTerm(bug) || lastAdultBug()) {
             giveBirth(bug);
-        }
-        var tooCloseBugs = watchForCloseBugs(bug);
-        if (tooCloseBugs.length > 0) {
-            if (flocking) {
-                diverge(bug, tooCloseBugs);
-            }
         } else {
             var candidate = canMate(bug);
             if (candidate) {
                 if (together(bug, candidate)) {
                     fertilize(bug, candidate);
                 } else {
-                    var candidatePos = [candidate.x, candidate.y];
-                    var candidateDirection = calcAngle(bug, candidatePos);
-                    nudge(bug, candidateDirection);
+                    headForPartner(bug, candidate);
                 }
             } else {
                 var parent = bug.needsParent();
                 if (parent) {
                     bug.feedOnParent();
-                } else if (bug.timeToTurn()) {
-                    bug.reactToFood();
                 } else {
-                    if (fullTerm(bug)) {
-                        giveBirth(bug);
+                    var tooCloseBugs = watchForCloseBugs(bug);
+                    if (tooCloseBugs.length > 0) {
+                        diverge(bug, tooCloseBugs);
+                    } else {
+                        if (bug.timeToTurn()) {
+                            bug.reactToFood();
+                        } else {
+                            if (flocking) converge(bug);
+                        }
                     }
-                    if (flocking) converge(bug);
                 }
             }
         }
@@ -635,6 +648,7 @@ $(function () {
             bounceSteps: 0,
             fat: 2 * minBugFat,
             direction: Math.random() * 2 * pi,
+            goal: 'none',
             flockSteps: 10 + Math.ceil(Math.random() * 25),
             poopSteps: Math.ceil(Math.random() * 40 + 10),
             turnSteps: Math.ceil(Math.random() * 100),
@@ -665,6 +679,7 @@ $(function () {
             reactToFood: function () {
                 if (this.foodLeft !== this.foodRight) {
                     var right = this.foodRight > this.foodLeft;
+                    this.goal = (right) ? 'food right' : 'food left';
                     this.turn(right);
                     this.foodRight = 0;
                     this.foodLeft = 0;
@@ -690,6 +705,7 @@ $(function () {
                 this.radius = Math.min(fatToRadius(this.fat), this.maxRadius);
             },
             feedOnParent: function () {
+                this.goal = 'parent';
                 var parentBug = parent(this.parentId);
                 if (parentBug) {
                     parentBug.fat--;
@@ -1014,9 +1030,9 @@ $(function () {
                 $tr.append('<td>' + Math.round(thisBug.fat) + '</td>');
                 // $tr.append('<td>' + thisBug.radius + '</td>');
                 // $tr.append('<td>' + thisBug.direction + '</td>');
-                // $tr.append('<td>' + this.x + '</td>');
-                // $tr.append('<td>' + this.y + '</td>');
-                // $tr.append('<td>' + fixedDecimals(this.direction / pi, 2) + '</td>');
+                // $tr.append('<td>' + thisBug.x + '</td>');
+                // $tr.append('<td>' + thisBug.y + '</td>');
+                $tr.append('<td>' + fixedDecimals(thisBug.direction / pi, 2) + '</td>');
                 // $tr.append('<td>' + fixedDecimals(thisBug.bounceSteps) + '</td>');
                 // $tr.append('<td>' + fixedDecimals(thisBug.recoverySteps) + '</td>');
                 $tr.append('<td>' + fixedDecimals(thisBug.turnAmount) + '</td>');
@@ -1024,6 +1040,7 @@ $(function () {
                 $tr.append('<td>' + fixedDecimals(thisBug.poopSteps) + '</td>');
                 $tr.append('<td>' + thisBug.offspring + '</td>');
                 $tr.append('<td>' + thisBug.generation + '</td>');
+                $tr.append('<td>' + thisBug.goal + '</td>');
                 if ($oldTr.length) {
                     $oldTr.replaceWith($tr);
                 } else {
