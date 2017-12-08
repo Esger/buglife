@@ -83,8 +83,8 @@ input, label {
     font : 12px bold 'trebuchet MS';
 }
 
-#liferules input, .cellsizer, .flock, .history, .trails, input[type='number'] {
-    margin: 0 3px 0 10px;
+#bugrules a, #bugrules input, #liferules input, .cellsizer, .flock, .history, .trails, input[type='number'] {
+    margin: 5px 3px 0 10px;
 }
 
 input[type='number'] {
@@ -104,11 +104,11 @@ canvas {
     margin-top: 18px;
 }
 
-#liferules {
+#bugrules, #liferules {
     display: none;
 }
 
-#data {
+fieldset {
     margin: 12px 0 18px;
     border: 0 solid black;
 }

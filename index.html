@@ -109,14 +109,22 @@
                        id="randombutton"
                        title="Random"></a>
                     <label><input class="trails" type="checkbox" checked /> Trails</label>
-                    <label><input class="cellNutrition" type="number" value="3" step="0.05" /> Cell Nutrition Value</label>
-                    <label><input class="startBugCount" type="number" value="3" step="1" /> Bugs to start with</label>
-                    <label><input class="flock" type="checkbox" checked/> Flock</label>
                 </fieldset>
                 <fieldset id="data">
                     <p>Generations (x-axis): <span id="teller">0</span> - Live cells (y-axis): <span id="cellsalive">0</span> -
                         <span id="speed">0</span> generations/sec. - <span id="bugCount"></span> bugs alive
                     </p>
+                </fieldset>
+                <fieldset id="bugrules">
+                    <label><input class="cellNutrition" type="number" value="3" step="0.05" /> Cell Nutrition Value</label>
+                    <label><input class="startBugCount" type="number" value="3" step="1" /> Bugs to start with</label>
+                    <label><input class="flockingDistance" type="number" value="50" step="5" /> Min attraction distance</label><br>
+                    <label><input class="flock" type="checkbox" checked/> Flock</label><br>
+                    <label><a href="#"
+                        id="bugbutton"
+                        title="Add a bug">Add&nbsp;a&nbsp;bug</a>
+                    </label>
+
                 </fieldset>
                 <fieldset id="liferules"
                           action="#">
@@ -199,17 +207,18 @@
             </form>
             <form id="panels">
                 <a href="#"
-                   id="bugbutton"
-                   title="Add a bug">Add&nbsp;a&nbsp;bug</a>
+                   id="liferulestoggler"
+                   class="toggler">Life settings</a>
                 <a href="#"
-                   id="rulestoggler"
-                   class="toggler">Life rules</a>
-                <a href="#"
-                   id="graphtoggler"
-                   class="toggler">Graph</a>
+                   id="bugrulestoggler"
+                   class="toggler">Bug settings</a>
                 <a href="#"
                    id="datatoggler"
                    class="toggler r">Bug data</a>
+                <a href="#"
+                   flockingDistance
+                   id="graphtoggler"
+                   class="toggler">Chart</a>
                 <a href="#"
                    id="texttoggler"
                    class="toggler r">Story</a>
@@ -227,7 +236,7 @@
                 <thead>
                     <tr>
                         <td>Id</td>
-                        <td>Gender</td>
+                        <!-- <td>Gender</td> -->
                         <td>Fat</td>
                         <!-- <td>Radius</td> -->
                         <!-- <td>Direction</td> -->
@@ -241,7 +250,7 @@
                         <td>shitSteps</td>
                         <td>Offspring</td>
                         <td>Generation</td>
-                        <td>Goal</td>
+                        <td>Action</td>
                     </tr>
                 </thead>
             </table>
@@ -280,7 +289,7 @@
                 <li>When they have grown enough, they can find a mate to reproduce with</li>
                 <li>If the population of bugs reaches a certain number, they all become infertile until some others have died</li>
                 <li>As a last eyecandy, they leave droppings behind in the form of basic life gliders</li>
-
+                <li>The bugs show flocking behaviour by default. This can be turned off in the bug settings</li>
             </ul>
             <img src="images/bug-0.png"
                  class="bug-0">
@@ -290,13 +299,13 @@
                  class="bug_0">
             <img src="images/bug_1.png"
                  class="bug_1">
-            <p>The question is: Will a bug with a certain set of properties evolve as more successful?</p>
+            <p><i>The question is: Will a bug with a certain set of properties evolve as more successful?</i></p>
 
             <h2>Experiment</h2>
             <ul>
                 <li>Mouse over it to slow things down</li>
                 <li>Uncheck &lsquo;Trails&rsquo; to see the raw Conway's life</li>
-                <li>Switch on the &lsquo;life rules&rsquo; and play with them</li>
+                <li>Switch on the &lsquo;life or bug settings&rsquo; and play with them</li>
             </ul>
 
             <h2>Life controls</h2>
