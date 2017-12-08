@@ -3,6 +3,7 @@ $(function () {
     var canvas = document.getElementById('thetoroid'), // The canvas where life is drawn
         graphCanvas = document.getElementById('thegraph'), // The canvas where the graph is drawn
 
+        $flockingDistance = $('.flockingDistance'),
         $teller = $('#teller'),
         $cellsAlive = $('#cellsalive'),
         $speed = $('#speed'),
@@ -26,6 +27,7 @@ $(function () {
         feromoneRange = 150,
         fillRatio = 20, // Percentage of available cells that will be set alive initially (20)
         flocking = $('.flock').is(":checked"),
+        flockGravityPoint = [],
         dataCycle = 10,
         deadBugCells = [],
         deadBugs = [],
@@ -35,6 +37,7 @@ $(function () {
         interval = 0, // Milliseconds between iterations
         liferules = [],
         liveCells = [], // Array with x,y coordinates of living cells
+        flockingDistance = 50, // this.flockingDistance;
         minBugFat = 50,
         neighbours, // Array with neighbours count
         newBornSteps = 500,
@@ -46,6 +49,7 @@ $(function () {
         showGraph = false,
         showData = false,
         showIds = false,
+        spaceBetweenBugs = 5,
         spaceHeight = (canvas.height / cellSize),
         spaceWidth = (canvas.width / cellSize),
         speed = 0,
@@ -116,6 +120,20 @@ $(function () {
                 liferules[count] = false;
             }
         }
+    }
+
+    // Bind inputs for bug rules
+    function initBugrules() {
+        // init startBugCount;
+        $startBugCount.val(startBugsCount);
+        // startBugCount updaten
+        $startBugCount.on('change', function () {
+            startBugsCount = parseInt($startBugCount.val());
+        });
+        $flockingDistance.val();
+        $flockingDistance.on('change', function () {
+            flockingDistance = parseInt($flockingDistance.val());
+        });
     }
 
     // Erase the canvas
@@ -360,6 +378,8 @@ $(function () {
 
     function giveBirth(thisBug) {
 
+        thisBug.action = 'giving birth';
+
         var partnerBug = bugs.filter(function (bug) {
             return bug.id === thisBug.partner;
         })[0];
@@ -390,10 +410,8 @@ $(function () {
         thisBug.recoverySteps = 0;
 
         var newBornBug = new randomBug();
-        newBornBug.Id = thisBug.id;
         newBornBug.parentId = (thisBug.gender == 0) ? thisBug.id : partnerBug.id;
         newBornBug.generation = oldestBug.generation + 1;
-        newBornBug.lockDirection = true;
 
         newBornBug.y = fixedDecimals(center.y + Math.cos(Math.random() * 2 * pi) * (Math.random() * 50 + thisBug.radius));
         newBornBug.x = fixedDecimals(center.x + Math.cos(Math.random() * 2 * pi) * (Math.random() * 50 + thisBug.radius));
@@ -405,112 +423,6 @@ $(function () {
         newBornBug.poopSteps = Math.round(strongestBug.poopSteps + randomSign() * weakestBug.poopSteps / 10);
 
         bugs.push(newBornBug);
-    }
-
-    // Let bugs avoid each other
-    function avoidOrAttractOthers() {
-
-        function inRange(minDistance) {
-            var dX = thisBug.x - thatBug.x;
-            var dY = thisBug.y - thatBug.y;
-            var distance = Math.sqrt(Math.pow((dX), 2) + Math.pow((dY), 2));
-            return distance < minDistance;
-        }
-
-        function together() {
-            var minDistance = thisBug.radius + thatBug.radius + 5;
-            return inRange(minDistance);
-        }
-
-        function fullTerm() {
-            return thisBug.gender == 0 && thisBug.recoverySteps >= pregnancySteps;
-        }
-
-        function lastAdultBug() {
-            var lastBug = bugs[0];
-            if (bugs.length == 1 && lastBug.adult()) {
-                lastBug.gender = 0;
-                return true;
-            } else {
-                return false;
-            }
-        }
-
-        function differentGenders() {
-            return thisBug.gender !== thatBug.gender;
-        }
-
-        function bothAdult() {
-            return thisBug.adult() && thatBug.adult() && !thisBug.pregnant && !thatBug.pregnant;
-        }
-
-        function calcAngle() {
-            var dX = thatBug.x - thisBug.x;
-            var dY = thatBug.y - thisBug.y;
-            var angle = Math.atan(dY / dX);
-            return angle;
-        }
-
-        function turnFaces() {
-            var angle;
-            if (!thisBug.lockDirection && !thatBug.lockDirection) {
-                angle = calcAngle();
-                thisBug.direction = angle;
-                thatBug.direction = angle + pi;
-                thisBug.lockDirection = true;
-                thatBug.lockDirection = true;
-            }
-        }
-
-        function bounce() {
-            var angle;
-            if (!flocking && !thisBug.lockDirection) {
-                angle = calcAngle();
-                thisBug.direction += angle + pi / 2;
-                thisBug.lockDirection = true;
-            }
-        }
-
-        function fertilize() {
-            if (thisBug.gender == 0) {
-                thisBug.pregnant = true;
-                thisBug.partner = thatBug.id;
-            }
-            if (thatBug.gender == 0) {
-                thatBug.pregnant = true;
-                thatBug.partner = thisBug.id;
-            }
-        }
-
-        function fertile() {
-            return differentGenders() && bothAdult() && !thisBug.pregnant && bugs.length < 23;
-        }
-
-        for (var i = 0; i < bugs.length; i++) {
-            var thisBug = bugs[i];
-            if (lastAdultBug()) {
-                giveBirth(thisBug);
-            } else {
-                for (var j = 0; j < bugs.length; j++) {
-                    if (i !== j) {
-                        var thatBug = bugs[j];
-                        if (fertile() && inRange(feromoneRange)) {
-                            turnFaces(); // check
-                        }
-                        if (together()) {
-                            if (fertile()) {
-                                fertilize();
-                            } else {
-                                bounce(); // check
-                            }
-                        }
-                        if (fullTerm()) {
-                            giveBirth(thisBug);
-                        }
-                    }
-                }
-            }
-        }
     }
 
     // If parent exists return part of its fat
@@ -530,39 +442,219 @@ $(function () {
         return distance;
     }
 
-    function watchFlock(bug) {
-        var direction = 0;
-        var sinTotal = 0;
-        var cosTotal = 0;
+    function inFront(thisBug, thatBug) {
+        var perpendicularDirection = thisBug.direction - pi / 2;
+        return thatBug.y > thatBug.x * Math.sin(perpendicularDirection);
+    }
+
+    function calcAngle(bug, pos) {
+        var dX = pos[0] - bug.x;
+        var dY = pos[1] - bug.y;
+        var angle = Math.atan2(dY, dX);
+        return angle;
+    }
+
+    // change bug direction towards given direction a bit
+    function nudge(bug, direction) {
+        var tempDirection = (direction - bug.direction + 4 * pi) % (2 * pi);
+        var nudgeAngle = pi / 32;
+        if (tempDirection > pi) {
+            bug.direction -= nudgeAngle;
+        } else {
+            bug.direction += nudgeAngle;
+        }
+        bug.direction = (bug.direction + 2 * pi) % (2 * pi);
+    }
+
+    function diverge(bug, closeBugs) {
+        bug.action = 'diverge';
+        var xTotal = 0;
+        var yTotal = 0;
+        var meanPos = [];
+        var bugCount = closeBugs.length;
+        var bugsInfront = false;
+        for (var i = 0; i < bugCount; i++) {
+            var thisBug = closeBugs[i];
+            if (inFront(bug, thisBug)) {
+                bugsInfront = true;
+                xTotal += thisBug.x;
+                yTotal += thisBug.y;
+            }
+        }
+        if (bugsInfront) {
+            meanPos[0] = xTotal / bugCount;
+            meanPos[1] = yTotal / bugCount;
+            var directionToMeanPos = calcAngle(bug, meanPos);
+            nudge(bug, directionToMeanPos - pi);
+        }
+    }
+
+    function inConvergingRange(thisBug, thatBug) {
+        var distance = calcDistance(thisBug, thatBug);
+        var inRange = distance < flockingDistance;
+        return inRange;
+    }
+
+    function notSameBug(thisBug, thatBug) {
+        return thisBug.id !== thatBug.id;
+    }
+
+    function converge(bug) {
+        if (bugs.length > 1) {
+            bug.action = 'converge';
+            var convergingPointDistance = 50; // Make variable input
+            var xTotal = 0;
+            var yTotal = 0;
+            var sinTotal = 0;
+            var cosTotal = 0;
+            var meanPos = [];
+            var targetPoint = [];
+            var direction = 0;
+            var bugCount = bugs.length;
+            var doConverge = false;
+            for (var i = 0; i < bugCount; i++) {
+                var thisBug = bugs[i];
+                if (notSameBug(thisBug, bug) && inConvergingRange(bug, thisBug)) {
+                    doConverge = true;
+                    // get vector of thisBug
+                    xTotal += thisBug.x;
+                    yTotal += thisBug.y;
+                    cosTotal += Math.cos(thisBug.direction);
+                    sinTotal += Math.sin(thisBug.direction);
+                }
+            }
+            if (doConverge) {
+                meanPos[0] = xTotal / (bugCount - 1);
+                meanPos[1] = yTotal / (bugCount - 1);
+                var meanDirection = Math.atan2(sinTotal, cosTotal);
+
+                targetPoint[0] = meanPos[0] + cosTotal * convergingPointDistance;
+                targetPoint[1] = meanPos[1] + sinTotal * convergingPointDistance;
+                var directionToTargetPos = calcAngle(bug, targetPoint);
+
+                nudge(bug, directionToTargetPos);
+            }
+
+        }
+    }
+
+    function watchForCloseBugs(bug) {
         var bugCount = bugs.length;
-        var nudge = pi / 16;
+        var closeBugs = [];
         for (var i = 0; i < bugCount; i++) {
             var thisBug = bugs[i];
-            // It's a freely moving bug not myself
-            if (thisBug.id !== bug.id && !thisBug.lockDirection) {
+            if (notSameBug(thisBug, bug)) {
+                var minDistance = bug.radius + thisBug.radius + spaceBetweenBugs;
                 var distance = calcDistance(bug, thisBug);
-                // They're not too close, so let's convert
-                if (distance > bug.radius + thisBug.radius + 10) {
-                    distance = Math.pow(distance, 2);
-                    sinTotal += Math.sin(thisBug.direction) / distance;
-                    cosTotal += Math.cos(thisBug.direction) / distance;
-                } else {
-                    // Let's divert
-                    // var meanDirection = (thisBug.direction + bug.direction) / 2;
-                    if (Math.abs(thisBug.direction - bug.direction) > pi) {
-                        if (thisBug.direction > bug.direction) {
-                            thisBug.direction += nudge;
-                            bug.direction -= nudge;
-                        } else {
-                            thisBug.direction -= nudge;
-                            bug.direction += nudge;
-                        }
-                    }
-
+                if (distance < minDistance) {
+                    closeBugs.push(thisBug);
                 }
             }
         }
-        bug.direction = (bug.direction + Math.atan(sinTotal / cosTotal)) / 2;
+        return closeBugs;
+    }
+
+    function differentGenders(thisBug, thatBug) {
+        return thisBug.gender !== thatBug.gender;
+    }
+
+    function bothAdult(thisBug, thatBug) {
+        return thisBug.adult() && thatBug.adult() && !thisBug.pregnant && !thatBug.pregnant;
+    }
+
+    function fertile(thisBug, thatBug) {
+        return differentGenders(thisBug, thatBug) && bothAdult(thisBug, thatBug) && !thisBug.pregnant && bugs.length < 23;
+    }
+
+    function together(thisBug, thatBug) {
+        var minDistance = thisBug.radius + thatBug.radius;
+        var dX = thisBug.x - thatBug.x;
+        var dY = thisBug.y - thatBug.y;
+        var distance = Math.sqrt(Math.pow((dX), 2) + Math.pow((dY), 2));
+        return distance < minDistance;
+    }
+
+    function fullTerm(thisBug) {
+        return thisBug.gender == 0 && thisBug.recoverySteps >= pregnancySteps;
+    }
+
+    function lastAdultBug() {
+        var lastBug = bugs[0];
+        if (bugs.length == 1 && lastBug.adult()) {
+            lastBug.gender = 0;
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    function fertilize(thisBug, thatBug) {
+        thisBug.action = 'mating';
+
+        if (thisBug.gender == 0) {
+            thisBug.pregnant = true;
+            thisBug.partner = thatBug.id;
+        }
+        if (thatBug.gender == 0) {
+            thatBug.pregnant = true;
+            thatBug.partner = thisBug.id;
+        }
+    }
+
+    function canMate(bug) {
+        var closestCandidatePartner = null;
+        if (bug.adult()) {
+            var bugCount = bugs.length;
+            var closestDistance = Infinity;
+            for (var i = 0; i < bugCount; i++) {
+                var thisBug = bugs[i];
+                if (fertile(bug, thisBug)) {
+                    var distance = calcDistance(bug, thisBug);
+                    if (distance < closestDistance) {
+                        closestCandidatePartner = thisBug;
+                    }
+                }
+            }
+        }
+        return closestCandidatePartner;
+    }
+
+    function headForPartner(thisBug, thatBug) {
+        thisBug.action = 'head for ' + thatBug.id;
+        var candidatePos = [thatBug.x, thatBug.y];
+        var candidateDirection = calcAngle(thisBug, candidatePos);
+        nudge(thisBug, candidateDirection);
+    }
+
+    function navigate(bug) {
+        if (fullTerm(bug) || lastAdultBug()) {
+            giveBirth(bug);
+        } else {
+            var candidate = canMate(bug);
+            if (candidate) {
+                if (together(bug, candidate)) {
+                    fertilize(bug, candidate);
+                } else {
+                    headForPartner(bug, candidate);
+                }
+            } else {
+                var parent = bug.needsParent();
+                if (parent) {
+                    bug.feedOnParent();
+                } else {
+                    var tooCloseBugs = watchForCloseBugs(bug);
+                    if (tooCloseBugs.length > 0) {
+                        diverge(bug, tooCloseBugs);
+                    } else {
+                        if (bug.timeToTurn()) {
+                            bug.reactToFood();
+                        } else {
+                            if (flocking) converge(bug);
+                        }
+                    }
+                }
+            }
+        }
     }
 
     // random bug object
@@ -573,20 +665,21 @@ $(function () {
             },
             alive: true,
             bounceSteps: 0,
-            direction: Math.random() * 2 * pi,
             fat: 2 * minBugFat,
-            flockSteps: Math.ceil(Math.random() * 25),
+            direction: Math.random() * 2 * pi,
+            goal: 'none',
+            flockSteps: 10 + Math.ceil(Math.random() * 25),
+            poopSteps: Math.ceil(Math.random() * 40 + 10),
+            turnSteps: Math.ceil(Math.random() * 100),
             foodLeft: 0,
             foodRight: 0,
             gender: random01(),
             generation: 0,
             id: bugId++,
-            lockDirection: false,
             maxRadius: 15,
             parentId: null,
             offspring: 0,
             partner: null,
-            poopSteps: Math.floor(Math.random() * 40 + 10),
             pregnant: false,
             radius: fatToRadius(this.remnantCells),
             recoverySteps: 0,
@@ -594,54 +687,57 @@ $(function () {
             steps: 0,
             turnAmount: Math.random() * pi / 4,
             turnDirection: randomSign,
-            turnSteps: Math.round(Math.random() * 100),
             x: fixedDecimals((Math.random() * spaceWidth) * cellSize, 2),
             y: fixedDecimals((Math.random() * spaceHeight) * cellSize, 2),
             timeToTurn: function () {
-                return this.steps % this.turnSteps == 0 && !this.lockDirection;
+                return this.steps % this.turnSteps == 0;
             },
             timeToFlock: function () {
-                return flocking && this.steps % this.flockSteps == 0 && !this.lockDirection;
+                return flocking && this.steps % this.flockSteps == 0;
+            },
+            reactToFood: function () {
+                if (this.foodLeft !== this.foodRight) {
+                    var right = this.foodRight > this.foodLeft;
+                    this.action = (right) ? 'food right' : 'food left';
+                    this.turn(right);
+                    this.foodRight = 0;
+                    this.foodLeft = 0;
+                }
+            },
+            needsParent: function () {
+                if (this.steps < this.newBornSteps) {
+                    return this.parentId;
+                }
+                return null;
             },
             turn: function (right) {
                 var sign = (right) ? 1 : -1;
                 // this.direction += sign * this.turnAmount;
                 this.direction = (this.direction + sign * this.turnAmount) % (2 * pi);
             },
-            move: function () {
-                if (this.timeToTurn()) {
-                    var right = this.foodRight > this.foodLeft;
-                    this.turn(right);
-                    this.foodRight = 0;
-                    this.foodLeft = 0;
-                }
-                if (this.timeToFlock()) {
-                    watchFlock(this);
-                }
+            advance: function () {
                 this.x = fixedDecimals(xWrap(this.x + Math.cos(this.direction)));
                 this.y = fixedDecimals(yWrap(this.y + Math.sin(this.direction)));
+            },
+            digest: function () {
                 this.fat -= Math.log10(this.fat) / 3;
                 this.radius = Math.min(fatToRadius(this.fat), this.maxRadius);
+            },
+            feedOnParent: function () {
+                this.action = 'parent';
+                var parentBug = parent(this.parentId);
+                if (parentBug) {
+                    parentBug.fat--;
+                    this.fat++;
+                    this.direction = parentBug.direction;
+                }
+            },
+            move: function () {
                 this.steps++;
-                if (this.steps < newBornSteps) {
-                    var parentBug = parent(this.parentId);
-                    if (parentBug) {
-                        parentBug.fat--;
-                        this.fat++;
-                        this.direction = parentBug.direction;
-                    }
-                } else {
-                    if (this.steps == newBornSteps) {
-                        this.lockDirection = false;
-                    }
-                }
+                navigate(this);
+                this.advance();
+                this.digest();
                 this.recoverySteps += (this.pregnant) ? 1 : 0;
-                if (this.lockDirection && this.bounceSteps <= bounceCycles) {
-                    this.bounceSteps++;
-                } else {
-                    this.bounceSteps = 0;
-                    this.lockDirection = false;
-                }
                 if (this.steps % this.poopSteps == 0) {
                     this.poop();
                 }
@@ -730,7 +826,6 @@ $(function () {
         zeroNeighbours();
         countNeighbours();
         evalNeighbours();
-        avoidOrAttractOthers();
         moveBugs();
         updateScreen();
     }
@@ -739,6 +834,7 @@ $(function () {
         if (canvas.getContext) {
             initVariables();
             initLiferules();
+            initBugrules();
             fillRandom();
             addBugs(startBugsCount);
             updateScreen();
@@ -862,8 +958,13 @@ $(function () {
     });
 
     // Toggle liferules checkboxes on or off
-    $('#rulestoggler').on('click', function () {
+    $('#liferulestoggler').on('click', function () {
         $('#liferules').toggle('slow');
+    });
+
+    // Toggle bugrules checkboxes on or off
+    $('#bugrulestoggler').on('click', function () {
+        $('#bugrules').toggle('slow');
     });
 
     // Toggle text on or off
@@ -884,6 +985,10 @@ $(function () {
 
     $('#liferules input').on('click', function () {
         initLiferules();
+    });
+
+    $('#bugrules input').on('click', function () {
+        initBugrules();
     });
 
     $('canvas').on('mouseover', function () {
@@ -916,12 +1021,6 @@ $(function () {
         cellNutritionValue = parseInt($cellNutritionValue.val());
     });
 
-    // init startBugCount;
-    $startBugCount.val(startBugsCount);
-    // startBugCount updaten
-    $startBugCount.on('change', function () {
-        startBugsCount = parseInt($startBugCount.val());
-    });
 
     // Uit object halen?
     function showDataTable() {
@@ -950,13 +1049,13 @@ $(function () {
             if (thisBug.alive) {
                 var $tr = $('<tr style="color:' + color(thisBug) + ';" id="bug' + thisBug.id + '"></tr>');
                 $tr.append('<td>' + (thisBug.id + '').substr(-4) + '</td>');
-                $tr.append('<td>' + thisBug.gender + '</td>');
+                // $tr.append('<td>' + thisBug.gender + '</td>');
                 $tr.append('<td>' + Math.round(thisBug.fat) + '</td>');
                 // $tr.append('<td>' + thisBug.radius + '</td>');
                 // $tr.append('<td>' + thisBug.direction + '</td>');
-                // $tr.append('<td>' + this.x + '</td>');
-                // $tr.append('<td>' + this.y + '</td>');
-                // $tr.append('<td>' + fixedDecimals(this.direction / pi, 2) + '</td>');
+                // $tr.append('<td>' + thisBug.x + '</td>');
+                // $tr.append('<td>' + thisBug.y + '</td>');
+                $tr.append('<td>' + fixedDecimals(thisBug.direction / pi, 2) + '</td>');
                 // $tr.append('<td>' + fixedDecimals(thisBug.bounceSteps) + '</td>');
                 // $tr.append('<td>' + fixedDecimals(thisBug.recoverySteps) + '</td>');
                 $tr.append('<td>' + fixedDecimals(thisBug.turnAmount) + '</td>');
@@ -964,6 +1063,7 @@ $(function () {
                 $tr.append('<td>' + fixedDecimals(thisBug.poopSteps) + '</td>');
                 $tr.append('<td>' + thisBug.offspring + '</td>');
                 $tr.append('<td>' + thisBug.generation + '</td>');
+                $tr.append('<td>' + thisBug.action + '</td>');
                 if ($oldTr.length) {
                     $oldTr.replaceWith($tr);
                 } else {
