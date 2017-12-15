@@ -78,13 +78,17 @@ fieldset {
     border: none;
 }
 
+legend {
+    font-size: 18px;
+}
+
 input, label {
     color: #404000;
     font : 12px bold 'trebuchet MS';
 }
 
 #bugrules a, #bugrules input, #liferules input, .cellsizer, .flock, .history, .trails, input[type='number'] {
-    margin: 5px 3px 0 10px;
+    margin: 5px 3px 0 0;
 }
 
 input[type='number'] {
@@ -106,6 +110,26 @@ canvas {
 
 #bugrules, #liferules {
     display: none;
+}
+
+#bugrules > div, #liferules > div {
+    display        : flex;
+    flex-direction : row;
+    flex-wrap      : wrap;
+    justify-content: flex-start;
+    width          : 500px;
+}
+
+#bugrules > div > label {
+    flex: 1 0 200px;
+}
+
+#liferules > div > label {
+    flex: 1 0 25px;
+}
+
+#liferules > div > label:first-child {
+    flex: 1 0 60px;
 }
 
 fieldset {
@@ -224,9 +248,16 @@ fieldset {
     background-position: -50px -125px;
 }
 
-#controls a.toggler, #data a.toggler {
+a.button, a.toggler {
     background-image: none;
-    color           : #404000;
+    background-color: #8c8c00;
+    border-radius   : 3px;
+    margin          : 8px 0 0;
+    padding         : 1px 8px;
+    color           : #dd0;
+    text-decoration : none;
+    font-weight     : bold;
+    letter-spacing  : 1px;
 }
 
 a.toggler:hover {
@@ -256,6 +287,10 @@ a.toggler:hover {
     -webkit-box-align    : end;
     -ms-flex-align       : end;
     align-items          : flex-end;
+}
+
+#panels a {
+    text-align: right;
 }
 
 #ads {
