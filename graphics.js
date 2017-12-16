@@ -395,7 +395,7 @@ $(function () {
 
         if (partnerBug) {
             partnerBug.offspring++;
-            partnerBug.fat -= 2 * minBugFat;
+            partnerBug.fat -= minBugFat;
             strongestBug = (thisBug.fat > partnerBug.fat) ? thisBug : partnerBug;
             weakestBug = (thisBug.fat < partnerBug.fat) ? thisBug : partnerBug;
             oldestBug = (thisBug.generation > partnerBug.generation) ? thisBug : partnerBug;
@@ -406,7 +406,7 @@ $(function () {
         }
 
         thisBug.offspring++;
-        thisBug.fat -= 2 * minBugFat;
+        thisBug.fat -= minBugFat;
         thisBug.partner = null;
         thisBug.pregnant = false;
         thisBug.recoverySteps = 0;
@@ -764,7 +764,7 @@ $(function () {
                     if (this.steps % this.poopSteps == 0) {
                         this.poop();
                     }
-                    if (this.radius < 1 && this.steps > 10) {
+                    if (this.radius < 1 && this.steps > 100) {
                         this.alive = false;
                     }
                 } else {
