@@ -30,7 +30,7 @@ $(function () {
         flocking = $('.flock').is(":checked"),
         flockGravityPoint = [],
         dataCycle = 10,
-        deadBugCells = [],
+        newLifeCells = [],
         deadBugs = [],
         graveRadius = 50,
         graveMultiplier = 10,
@@ -64,14 +64,19 @@ $(function () {
         yScale = 5 * graphCanvas.height / numberCells; //Ratio to apply values on y-axis
 
     function maleCount() {
-        return bugs.filter(function (value, i, bugs) {
-            return value.gender == 1;
-            // console.log(value, i, bugs);
+        return bugs.filter(function (bug, i, bugs) {
+            return bug.gender == 1;
         }).length;
     }
 
     function femaleCount() {
         return bugs.length - maleCount();
+    }
+
+    function maleFatCount() {
+        return bugs.filter(function (bug, i, bugs) {
+            return bug.gender == 1;
+        }).length;
     }
 
     // Set some variables
@@ -85,7 +90,7 @@ $(function () {
         bugsYscale = (maleCount() != Infinity) ? Math.floor(graphCanvas.height / maleCount()) : graphCanvas.height / 5;
         bugId = 1;
         liveCells = [];
-        deadBugCells = [];
+        newLifeCells = [];
         deadBugs = [];
         neighbours = [];
         bugs = [];
@@ -147,13 +152,6 @@ $(function () {
     // Erase the canvas
     function clearSpace() {
         var ctx = canvas.getContext('2d');
-        ctx.fillStyle = "rgb(255, 255, 255)";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-    }
-
-    // Erase the graph
-    function clearGraph() {
-        var ctx = graphCanvas.getContext('2d');
         ctx.fillStyle = "rgb(255, 255, 255)";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
@@ -299,15 +297,16 @@ $(function () {
     }
 
     // alternate 0 and 1
-    function alternateBit(bit) {
+    function flipBit(bit) {
         return Math.abs(bit - 1);
     }
 
     // Change gender of a bug if only one gender remains
     function balanceGenders() {
-        if (bugs[0] && (typeof bugs[0].gender !== 'undefined') && (maleCount() == 0 || femaleCount() == 0)) {
+        var males = maleCount();
+        if (bugs.length > 1 && (males == 0 || males == bugs.length)) {
             // alternate 1 en 0
-            bugs[0].gender = alternateBit(bugs[0].gender);
+            bugs[0].flipGender();
         }
     }
 
@@ -339,20 +338,18 @@ $(function () {
     function moveBugs() {
         for (var i = 0; i < bugs.length; i++) {
             var thisBug = bugs[i];
-            if (thisBug.alive) {
-                thisBug.move();
-            } else {
+            thisBug.move();
+            if (!thisBug.alive) {
                 deadBugs.push(i);
-                thisBug.die();
             }
         }
-        for (var j = deadBugs.length - 1; j > 0; j--) {
+        // Remove dead bugs
+        for (var j = deadBugs.length - 1; j >= 0; j--) {
             bugs.splice(deadBugs[j], 1);
         }
         deadBugs = [];
-        if (bugs.length > 1) {
-            balanceGenders();
-        }
+
+        balanceGenders();
     }
 
     function fixedDecimals(num, dec) {
@@ -701,6 +698,9 @@ $(function () {
             adult: function () {
                 return this.radius > this.adultRadius();
             },
+            flipGender: function () {
+                this.gender = flipBit(this.gender);
+            },
             getRadius: function () {
                 var newRadius = Math.sqrt(Math.pow(this.maxSteps / 2, 2) - Math.pow(this.steps - this.maxSteps / 2, 2)) * 2 * this.maxRadius / this.maxSteps;
                 return newRadius;
@@ -755,16 +755,20 @@ $(function () {
                 }
             },
             move: function () {
-                this.steps++;
-                navigate(this);
-                this.advance();
-                this.digest();
-                this.recoverySteps += (this.pregnant) ? 1 : 0;
-                if (this.steps % this.poopSteps == 0) {
-                    this.poop();
-                }
-                if (this.radius < 1 && this.steps > 100) {
-                    this.alive = false;
+                if (this.alive) {
+                    this.steps++;
+                    navigate(this);
+                    this.advance();
+                    this.digest();
+                    this.recoverySteps += (this.pregnant) ? 1 : 0;
+                    if (this.steps % this.poopSteps == 0) {
+                        this.poop();
+                    }
+                    if (this.radius < 1 && this.steps > 10) {
+                        this.alive = false;
+                    }
+                } else {
+                    this.scatter();
                 }
             },
             feed: function (right) {
@@ -792,18 +796,18 @@ $(function () {
                         var cell = cells[key];
                         cell[0] = xWrap(cell[0] + poo.x);
                         cell[1] = yWrap(cell[1] + poo.y);
-                        deadBugCells.push(new celXY(cell[0], cell[1]));
+                        newLifeCells.push(new celXY(cell[0], cell[1]));
                     }
                 }
             },
-            die: function () {
+            scatter: function () {
                 var r, angle, x, y;
                 for (var i = this.fat * graveMultiplier; i > 0; i--) {
                     r = Math.random() * graveRadius + this.maxRadius;
                     angle = Math.random() * 2 * pi;
                     x = xWrap(this.radius + Math.round(this.x + Math.cos(angle) * r));
                     y = yWrap(this.radius + Math.round(this.y + Math.sin(angle) * r));
-                    deadBugCells.push(new celXY(x, y));
+                    newLifeCells.push(new celXY(x, y));
                 }
                 this.fat = 0;
             }
@@ -816,10 +820,10 @@ $(function () {
         }
     }
 
-    function addDeadBugCells() {
-        if (deadBugCells.length) {
-            liveCells = liveCells.concat(deadBugCells);
-            deadBugCells = [];
+    function addNewLifeCells() {
+        if (newLifeCells.length) {
+            liveCells = liveCells.concat(newLifeCells);
+            newLifeCells = [];
         }
     }
 
@@ -844,7 +848,7 @@ $(function () {
     // Animation function
     function bugLifeStep() {
         lifeSteps += 1;
-        addDeadBugCells();
+        addNewLifeCells();
         zeroNeighbours();
         countNeighbours();
         evalNeighbours();
@@ -1111,4 +1115,11 @@ $(function () {
         startLife();
     }
 
-});	
+});
+
+// TODO
+// inherit flocking steps
+// divert better
+// inherit (flocking) distance
+// young bugs die too soon
+// cleaner bug navigation

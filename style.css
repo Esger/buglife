@@ -78,10 +78,6 @@ fieldset {
     border: none;
 }
 
-legend {
-    font-size: 18px;
-}
-
 input, label {
     color: #404000;
     font : 12px bold 'trebuchet MS';
@@ -298,12 +294,6 @@ a.toggler:hover {
     height     : 600px;
     float      : right;
     margin-left: 10px;
-}
-
-.chromeFrameInstallDefaultStyle {
-    width : 100%;
-    /* default is 800px */
-    border: 5px solid blue;
 }
 
 /* Google+1 */
