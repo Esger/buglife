@@ -243,7 +243,7 @@ $(function () {
             thisy = liveCells[count].y;
             for (dy = -1; dy < 2; dy++) {
                 for (dx = -1; dx < 2; dx++) {
-                    neighbours[((thisy + dy) * spaceWidth + thisx + dx + numberCells) % numberCells]++;
+                    neighbours[((thisy + dy) * spaceWidth + thisx + dx + numberCells) % numberCells] += 1;
                 }
             }
             neighbours[thisy * spaceWidth + thisx] += 9;
@@ -578,6 +578,7 @@ $(function () {
         return distance < minDistance;
     }
 
+    // pregnancy to birth
     function fullTerm(thisBug) {
         return thisBug.gender == 0 && thisBug.recoverySteps >= pregnancySteps;
     }
@@ -702,7 +703,11 @@ $(function () {
                 this.gender = flipBit(this.gender);
             },
             getRadius: function () {
-                var newRadius = Math.sqrt(Math.pow(this.maxSteps / 2, 2) - Math.pow(this.steps - this.maxSteps / 2, 2)) * 2 * this.maxRadius / this.maxSteps;
+                // just pithagoras
+                var newRadius = Math.sqrt(
+                    Math.pow(this.maxSteps / 2, 2) -
+                    Math.pow(this.steps - this.maxSteps / 2, 2)
+                ) * 2 * this.maxRadius / this.maxSteps;
                 return newRadius;
             },
             timeToTurn: function () {
