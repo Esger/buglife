@@ -598,7 +598,7 @@ $(function () {
 
         addBugs: function (amount) {
             for (var count = 0; count < amount; count++) {
-                var bug = this.randomBug();
+                var bug = new this.randomBug();
                 bug.init();
                 this.bugs.push(bug);
             }
@@ -617,7 +617,7 @@ $(function () {
 
             if (partnerBug) {
                 partnerBug.offspring++;
-                partnerBug.fat -= minBugFat;
+                partnerBug.fat -= buggers.minBugFat;
                 strongestBug = (bug.fat > partnerBug.fat) ? bug : partnerBug;
                 weakestBug = (bug.fat < partnerBug.fat) ? bug : partnerBug;
                 oldestBug = (bug.generation > partnerBug.generation) ? bug : partnerBug;
@@ -628,12 +628,12 @@ $(function () {
             }
 
             bug.offspring++;
-            bug.fat -= minBugFat;
+            bug.fat -= buggers.minBugFat;
             bug.partnerId = null;
             bug.pregnant = false;
             bug.recoverySteps = 0;
 
-            var newBornBug = randomBug();
+            var newBornBug = new randomBug();
             newBornBug.parentId = (bug.gender == 0) ? bug.id : partnerBug.id;
             newBornBug.generation = oldestBug.generation + 1;
 
@@ -856,43 +856,43 @@ $(function () {
                 actionStack: {
                     whelp: {
                         doIt: false,
-                        do: 'giveBirth'
+                        do: 'giveBirth'  // buggers
                     },
                     die: {
                         doIt: false,
-                        do: 'scatter'
+                        do: 'scatter'   // conway
                     },
                     follow: {
                         doIt: false,
-                        do: 'feedOnParent'
+                        do: 'feedOnParent'  // this
                     },
                     divert: {
                         doIt: false,
-                        do: 'spread'
+                        do: 'spread'  // buggers
                     },
                     findPartner: {
                         doIt: false,
-                        do: 'headForPartner'
+                        do: 'headForPartner' // buggers
                     },
                     digest: {
                         doIt: true,
-                        do: 'burnFat'
+                        do: 'burnFat'  // this
                     },
                     food: {
                         doIt: false,
-                        do: 'reactToFood'
+                        do: 'reactToFood'  // this
                     },
                     flock: {
                         doIt: false,
-                        do: 'converge'
+                        do: 'converge'  // buggers
                     },
                     defecate: {
                         doIt: false,
-                        do: 'addGlider'
+                        do: 'addGlider'  // conway
                     },
                     doStep: {
                         doIt: true,
-                        do: 'advance'
+                        do: 'advance'  // this
                     }
                 },
                 alive: true,
@@ -910,7 +910,7 @@ $(function () {
                 turnSteps: 0,
                 gender: helpers.random01(),
                 id: this.bugId++,
-                remnantCells: this.minBugFat,
+                remnantCells: buggers.minBugFat,
                 radius: 0,
                 parentId: null,
                 pregnant: false,
@@ -923,12 +923,16 @@ $(function () {
                 x: 0,
                 y: 0,
                 navigate: function () {
+                    var fn;
                     for (const action in this.actionStack) {
                         if (this.actionStack.hasOwnProperty(action) && this.actionStack[action].doIt) {
-                            if (this.hasOwnProperty(this.actionStack[action].do)) {
-                                this[this.actionStack[action].do].call();
-                            } else {
-                                this.actionStack[action].do.call(this);
+                            fn = this.actionStack[action].do;
+                            if (typeof this[fn] == 'function') {
+                                this[fn].apply();
+                            } else if (typeof buggers[fn] == 'function') {
+                                buggers[fn].call(this);
+                            } else if (typeof conway[fn] == 'function') {
+                                conway[fn].call(this);
                             }
                             break;
                         }
@@ -986,7 +990,7 @@ $(function () {
                     }
                 },
                 move: function () {
-                    this.alive = (this.fat > this.minBugFat) && (this.radius >= this.minRadius);
+                    this.alive = (this.fat > buggers.minBugFat) && (this.radius >= this.minRadius);
                     this.steps++;
                     this.recoverySteps += (this.pregnant) ? 1 : 0;
                     this.actionStack.die.doIt = !this.alive;
@@ -996,7 +1000,7 @@ $(function () {
                     this.actionStack.follow.doIt = (this.steps < this.newBornSteps);
                     this.actionStack.food.doIt = this.isPriority(this.turnSteps);
                     this.actionStack.defecate.doIt = this.isPriority(this.poopSteps);
-                    this.actionStack.digest.doIt = (this.fat > this.minBugFat);
+                    this.actionStack.digest.doIt = (this.fat > buggers.minBugFat);
                     this.actionStack.flock.doIt = this.isPriority(this.flockSteps);
                     this.navigate();
                 },
@@ -1010,10 +1014,10 @@ $(function () {
                 },
                 init: function () {
                     this.direction = Math.random() * 2 * pi;
-                    this.fat = 4 * this.minBugFat;
+                    this.fat = 4 * buggers.minBugFat;
                     this.flockSteps = 10 + Math.ceil(Math.random() * 25);
                     this.gender = helpers.random01();
-                    this.maxSteps = this.maxBugSteps + helpers.randomSign() * Math.random() * 1000;
+                    this.maxSteps = buggers.maxBugSteps + helpers.randomSign() * Math.random() * 1000;
                     this.minRadius = Math.ceil(Math.random() * 7);
                     this.radius = this.minRadius;
                     this.poopSteps = Math.ceil(Math.random() * 40 + 10);
@@ -1072,7 +1076,7 @@ $(function () {
         controls.initControls();
         interface.initInterface();
         conway.initLife();
-        // buggers.initBugs();
+        buggers.initBugs();
     }
 
     function updateScreen() {
@@ -1100,7 +1104,7 @@ $(function () {
         conway.zeroNeighbours();
         conway.countNeighbours();
         conway.evalNeighbours();
-        // buggers.moveBugs();
+        buggers.moveBugs();
         updateScreen();
     }
 
