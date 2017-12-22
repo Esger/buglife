@@ -23,7 +23,7 @@ $(function () {
         yScale: 1, //Ratio to apply values on y-axis
 
         initInterface: function () {
-            this.bugsYscale = (buggers.maleCount() != 0) ? Math.floor(this.graphCanvas.height / buggers.maleCount()) : this.graphCanvas.height / 5;
+            this.bugsYscale = (buggers.maleCount != 0) ? Math.floor(this.graphCanvas.height / buggers.maleCount) : this.graphCanvas.height / 5;
             this.yScale = 5 * this.graphCanvas.height / conway.numberCells;
             this.$bugData.find('tbody tr').remove();
             this.clearSpace();
@@ -98,9 +98,9 @@ $(function () {
                 ctx.fillStyle = "rgb(128, 128, 0)";
                 ctx.fillRect(scaledSteps % graphCanvas.width, graphCanvas.height - cellsAlive * yScale, 1, 1);
                 ctx.fillStyle = (scaledSteps % 2 == 0) ? "rgba(128,0,0,0.3)" : "rgba(0,0,0)";
-                ctx.fillRect(scaledSteps % graphCanvas.width, graphCanvas.height - maleCount() * 5, 1, 1);
+                ctx.fillRect(scaledSteps % graphCanvas.width, graphCanvas.height - buggers.maleCount * 5, 1, 1);
                 ctx.fillStyle = (scaledSteps % 2 == 0) ? "rgba(0,0,0)" : "rgba(0,0,128,0.3)";
-                ctx.fillRect(scaledSteps % graphCanvas.width, graphCanvas.height - femaleCount() * 5, 1, 1);
+                ctx.fillRect(scaledSteps % graphCanvas.width, graphCanvas.height - buggers.femaleCount * 5, 1, 1);
             }
         },
 
@@ -453,12 +453,12 @@ $(function () {
         scatter: function (bug) {
             var r, angle, x, y,
                 graveRadius = 50;
-            for (var i = bug.fat * graveMultiplier; i > 0; i--) {
+            for (var i = bug.fat * buggers.graveMultiplier; i > 0; i--) {
                 r = Math.random() * graveRadius + bug.maxRadius;
                 angle = Math.random() * 2 * pi;
                 x = helpers.xWrap(bug.radius + Math.round(bug.x + Math.cos(angle) * r));
                 y = helpers.yWrap(bug.radius + Math.round(bug.y + Math.sin(angle) * r));
-                newLifeCells.push(celXY(x, y));
+                conway.newLifeCells.push(conway.celXY(x, y));
             }
             bug.fat = 0;
         },
@@ -508,14 +508,14 @@ $(function () {
         pregnancySteps: 100,
         startBugsCount: 17,
 
-        maleCount: function () {
+        get maleCount() {
             return this.bugs.filter(function (bug, i, bugs) {
                 return bug.gender == 1;
             }).length;
         },
 
-        femaleCount: function () {
-            return bugs.length - maleCount();
+        get femaleCount() {
+            return this.bugs.length - this.maleCount;
         },
 
         initBugs: function () {
@@ -546,10 +546,10 @@ $(function () {
 
         // Change gender of a bug if only one gender remains
         balanceGenders: function () {
-            var males = maleCount();
-            if (bugs.length > 1 && (males == 0 || males == bugs.length)) {
+            var males = this.maleCount;
+            if (this.bugs.length > 1 && (males == 0 || males == this.bugs.length)) {
                 // alternate 1 en 0
-                bugs[0].flipGender();
+                this.bugs[0].flipGender();
             }
         },
 
@@ -608,7 +608,7 @@ $(function () {
 
             bug.action = 'giving birth';
 
-            var partnerBug = bugs.filter(function (bug) {
+            var partnerBug = this.bugs.filter(function (bug) {
                 return bug.id === bug.partnerId;
             })[0];
             var strongestBug;
@@ -646,12 +646,12 @@ $(function () {
 
             newBornBug.poopSteps = Math.round(strongestBug.poopSteps + helpers.randomSign() * weakestBug.poopSteps / 10);
 
-            bugs.push(newBornBug);
+            this.bugs.push(newBornBug);
         },
 
         // If parent exists return part of its fat
         parent: function (momId) {
-            var motherBug = $.grep(bugs, function (bug) { return bug.id == momId; });
+            var motherBug = $.grep(this.bugs, function (bug) { return bug.id == momId; });
             if (motherBug.length) {
                 return motherBug[0];
             } else {
@@ -725,7 +725,7 @@ $(function () {
         },
 
         converge: function (bug) {
-            if (bugs.length > 1) {
+            if (this.bugs.length > 1) {
                 bug.action = 'converge';
                 var convergingPointDistance = 50; // Make variable input
                 var xTotal = 0;
@@ -735,10 +735,10 @@ $(function () {
                 var meanPos = [];
                 var targetPoint = [];
                 var direction = 0;
-                var bugCount = bugs.length;
+                var bugCount = this.bugs.length;
                 var doConverge = false;
                 for (var i = 0; i < bugCount; i++) {
-                    var thisBug = bugs[i];
+                    var thisBug = this.bugs[i];
                     if (notSameBug(thisBug, bug) && inConvergingRange(bug, thisBug)) {
                         doConverge = true;
                         // get vector of thisBug
@@ -788,7 +788,7 @@ $(function () {
         },
 
         fertile: function (thisBug, thatBug) {
-            return differentGenders(thisBug, thatBug) && bothAdult(thisBug, thatBug) && !thisBug.pregnant && bugs.length < 23;
+            return differentGenders(thisBug, thatBug) && bothAdult(thisBug, thatBug) && !thisBug.pregnant && this.bugs.length < 23;
         },
 
         together: function (thisBug, thatBug) {
@@ -822,10 +822,10 @@ $(function () {
 
         canMate: function (bug) {
             var closestCandidatePartner = null;
-            var bugCount = bugs.length;
+            var bugCount = this.bugs.length;
             var closestDistance = Infinity;
             for (var i = 0; i < bugCount; i++) {
-                var thisBug = bugs[i];
+                var thisBug = this.bugs[i];
                 if (fertile(bug, thisBug)) {
                     var distance = calcDistance(bug, thisBug);
                     if (distance < closestDistance) {
@@ -852,182 +852,195 @@ $(function () {
 
         // random bug object
         randomBug: function () {
-            return {
-                actionStack: {
-                    whelp: {
-                        doIt: false,
-                        do: 'giveBirth'  // buggers
-                    },
-                    die: {
-                        doIt: false,
-                        do: 'scatter'   // conway
-                    },
-                    follow: {
-                        doIt: false,
-                        do: 'feedOnParent'  // this
-                    },
-                    divert: {
-                        doIt: false,
-                        do: 'spread'  // buggers
-                    },
-                    findPartner: {
-                        doIt: false,
-                        do: 'headForPartner' // buggers
-                    },
-                    digest: {
-                        doIt: true,
-                        do: 'burnFat'  // this
-                    },
-                    food: {
-                        doIt: false,
-                        do: 'reactToFood'  // this
-                    },
-                    flock: {
-                        doIt: false,
-                        do: 'converge'  // buggers
-                    },
-                    defecate: {
-                        doIt: false,
-                        do: 'addGlider'  // conway
-                    },
-                    doStep: {
-                        doIt: true,
-                        do: 'advance'  // this
-                    }
+            // return {
+            var self = this;
+            self.actionStack = {
+                digest: {
+                    doIt: true,
+                    breakAfter: false,
+                    do: 'burnFat'  // this
                 },
-                alive: true,
-                fat: 0,
-                foodLeft: 0,
-                foodRight: 0,
-                generation: 0,
-                goal: 'none',
-                goldenRatio: 1.618,
-                maxRadius: 15,
-                minRadius: 0,
-                direction: 0,
-                flockSteps: 0,
-                poopSteps: 0,
-                turnSteps: 0,
-                gender: helpers.random01(),
-                id: this.bugId++,
-                remnantCells: buggers.minBugFat,
-                radius: 0,
-                parentId: null,
-                pregnant: false,
-                maxSteps: 0,
-                recoverySteps: 0,
-                steps: 0,
-                offspring: 0,
-                turnDirection: helpers.randomSign,
-                turnAmount: 0,
-                x: 0,
-                y: 0,
-                navigate: function () {
-                    var fn;
-                    for (const action in this.actionStack) {
-                        if (this.actionStack.hasOwnProperty(action) && this.actionStack[action].doIt) {
-                            fn = this.actionStack[action].do;
-                            if (typeof this[fn] == 'function') {
-                                this[fn].apply();
-                            } else if (typeof buggers[fn] == 'function') {
-                                buggers[fn].call(this);
-                            } else if (typeof conway[fn] == 'function') {
-                                conway[fn].call(this);
-                            }
+                defecate: {
+                    doIt: false,
+                    breakAfter: false,
+                    do: 'addGlider'  // conway
+                },
+                whelp: {
+                    doIt: false,
+                    breakAfter: false,
+                    do: 'giveBirth'  // buggers
+                },
+                die: {
+                    doIt: false,
+                    breakAfter: true,
+                    do: 'scatter'   // conway
+                },
+                divert: {
+                    doIt: false,
+                    breakAfter: true,
+                    do: 'spread'  // buggers
+                },
+                doStep: {
+                    doIt: true,
+                    breakAfter: false,
+                    do: 'advance'  // this
+                },
+                follow: {
+                    doIt: false,
+                    breakAfter: true,
+                    do: 'feedOnParent'  // this
+                },
+                findPartner: {
+                    doIt: false,
+                    breakAfter: true,
+                    do: 'headForPartner' // buggers
+                },
+                food: {
+                    doIt: false,
+                    breakAfter: true,
+                    do: 'reactToFood'  // this
+                },
+                flock: {
+                    doIt: false,
+                    breakAfter: false,
+                    do: 'converge'  // buggers
+                },
+            };
+            self.alive = true;
+            self.fat = 0;
+            self.foodLeft = 0;
+            self.foodRight = 0;
+            self.generation = 0;
+            self.goal = 'none';
+            self.goldenRatio = 1.618;
+            self.maxRadius = 15;
+            self.minRadius = 0;
+            self.direction = 0;
+            self.flockSteps = 0;
+            self.poopSteps = 0;
+            self.turnSteps = 0;
+            self.gender = helpers.random01();
+            self.id = buggers.bugId++;
+            self.remnantCells = buggers.minBugFat;
+            self.radius = 0;
+            self.parentId = null;
+            self.pregnant = false;
+            self.maxSteps = 0;
+            self.recoverySteps = 0;
+            self.steps = 0;
+            self.offspring = 0;
+            self.turnDirection = helpers.randomSign;
+            self.turnAmount = 0;
+            self.x = 0;
+            self.y = 0;
+            self.navigate = function () {
+                var fn;
+                for (const action in self.actionStack) {
+                    if (self.actionStack.hasOwnProperty(action) && self.actionStack[action].doIt) {
+                        fn = self.actionStack[action].do;
+                        if (typeof self[fn] == 'function') {
+                            self[fn].apply();
+                        } else if (typeof buggers[fn] == 'function') {
+                            buggers[fn].call(self, self);
+                        } else if (typeof conway[fn] == 'function') {
+                            conway[fn].call(self, self);
+                        }
+                        if (action.breakAfter) {
                             break;
                         }
                     }
-                },
-                adultRadius: function () {
-                    return this.maxRadius / this.goldenRatio;
-                },
-                adult: function () {
-                    return this.radius > this.adultRadius();
-                },
-                flipGender: function () {
-                    this.gender = flipBit(this.gender);
-                },
-                getRadius: function () {
-                    // just pithagoras
-                    var newRadius = Math.sqrt(
-                        Math.pow(this.maxSteps / 2, 2) -
-                        Math.pow(this.steps - this.maxSteps / 2, 2)
-                    ) * 2 * this.maxRadius / this.maxSteps;
-                    return newRadius;
-                },
-                isPriority(newSteps) {
-                    return this.steps % newSteps == 0;
-                },
-                reactToFood: function () {
-                    if (this.foodLeft !== this.foodRight) {
-                        var right = this.foodRight > this.foodLeft;
-                        this.action = (right) ? 'food right' : 'food left';
-                        this.turn(right);
-                        this.foodRight = 0;
-                        this.foodLeft = 0;
-                    }
-                },
-                turn: function (right) {
-                    var sign = (right) ? 1 : -1;
-                    this.direction += (sign * this.turnAmount);
-                    this.direction = helpers.positiveAngle(this.direction);
-                },
-                advance: function () {
-                    this.x = helpers.fixedDecimals(helpers.xWrap(this.x + Math.cos(this.direction)));
-                    this.y = helpers.fixedDecimals(helpers.yWrap(this.y + Math.sin(this.direction)));
-                },
-                burnFat: function () {
-                    this.fat -= Math.ceil(Math.log10(this.fat) / 3);
-                    this.radius = this.getRadius();
-                },
-                feedOnParent: function () {
-                    this.action = 'parent';
-                    var parentBug = parent(this.parentId);
-                    if (parentBug) {
-                        parentBug.fat--;
-                        this.fat++;
-                        this.direction = parentBug.direction;
-                    }
-                },
-                move: function () {
-                    this.alive = (this.fat > buggers.minBugFat) && (this.radius >= this.minRadius);
-                    this.steps++;
-                    this.recoverySteps += (this.pregnant) ? 1 : 0;
-                    this.actionStack.die.doIt = !this.alive;
-                    this.actionStack.whelp.doIt = (this.isPriority(this.pregnancySteps) && (this.gender == 0)) || buggers.lastAdultBug();
-                    this.actionStack.divert.doIt = buggers.watchForCloseBugs(this);
-                    this.actionStack.findPartner.doIt = this.adult();
-                    this.actionStack.follow.doIt = (this.steps < this.newBornSteps);
-                    this.actionStack.food.doIt = this.isPriority(this.turnSteps);
-                    this.actionStack.defecate.doIt = this.isPriority(this.poopSteps);
-                    this.actionStack.digest.doIt = (this.fat > buggers.minBugFat);
-                    this.actionStack.flock.doIt = this.isPriority(this.flockSteps);
-                    this.navigate();
-                },
-                feed: function (right) {
-                    if (right) {
-                        this.foodRight++;
-                    } else {
-                        this.foodLeft++;
-                    }
-                    this.fat += cellNutritionValue;
-                },
-                init: function () {
-                    this.direction = Math.random() * 2 * pi;
-                    this.fat = 4 * buggers.minBugFat;
-                    this.flockSteps = 10 + Math.ceil(Math.random() * 25);
-                    this.gender = helpers.random01();
-                    this.maxSteps = buggers.maxBugSteps + helpers.randomSign() * Math.random() * 1000;
-                    this.minRadius = Math.ceil(Math.random() * 7);
-                    this.radius = this.minRadius;
-                    this.poopSteps = Math.ceil(Math.random() * 40 + 10);
-                    this.turnAmount = Math.random() * pi / 4;
-                    this.turnSteps = Math.ceil(Math.random() * 100);
-                    this.x = helpers.fixedDecimals((Math.random() * conway.spaceWidth) * conway.cellSize, 2);
-                    this.y = helpers.fixedDecimals((Math.random() * conway.spaceHeight) * conway.cellSize, 2);
                 }
             };
-        },
+            self.adultRadius = function () {
+                return self.maxRadius / self.goldenRatio;
+            };
+            self.adult = function () {
+                return self.radius > self.adultRadius();
+            };
+            self.flipGender = function () {
+                self.gender = flipBit(self.gender);
+            };
+            self.getRadius = function () {
+                // just pithagoras
+                var newRadius = Math.sqrt(
+                    Math.pow(self.maxSteps / 2, 2) -
+                    Math.pow(self.steps - self.maxSteps / 2, 2)
+                ) * 2 * self.maxRadius / self.maxSteps;
+                return newRadius;
+            };
+            self.isPriority = function (newSteps) {
+                return self.steps % newSteps == 0;
+            };
+            self.reactToFood = function () {
+                if (self.foodLeft !== self.foodRight) {
+                    var right = self.foodRight > self.foodLeft;
+                    self.action = (right) ? 'food right' : 'food left';
+                    self.turn(right);
+                    self.foodRight = 0;
+                    self.foodLeft = 0;
+                }
+            };
+            self.turn = function (right) {
+                var sign = (right) ? 1 : -1;
+                self.direction += (sign * self.turnAmount);
+                self.direction = helpers.positiveAngle(self.direction);
+            };
+            self.advance = function () {
+                self.x = helpers.fixedDecimals(helpers.xWrap(self.x + Math.cos(self.direction)));
+                self.y = helpers.fixedDecimals(helpers.yWrap(self.y + Math.sin(self.direction)));
+            };
+            self.burnFat = function () {
+                self.fat -= Math.ceil(Math.log10(self.fat) / 3);
+                self.radius = self.getRadius();
+            };
+            self.feedOnParent = function () {
+                self.action = 'parent';
+                var parentBug = parent(self.parentId);
+                if (parentBug) {
+                    parentBug.fat--;
+                    self.fat++;
+                    self.direction = parentBug.direction;
+                }
+            };
+            self.move = function () {
+                self.alive = (self.fat > buggers.minBugFat) && (self.radius >= self.minRadius);
+                self.steps++;
+                self.recoverySteps += (self.pregnant) ? 1 : 0;
+                self.actionStack.die.doIt = !self.alive;
+                self.actionStack.whelp.doIt = (self.isPriority(self.pregnancySteps) && (self.gender == 0)) || buggers.lastAdultBug();
+                self.actionStack.divert.doIt = buggers.watchForCloseBugs(self);
+                self.actionStack.findPartner.doIt = self.adult();
+                self.actionStack.follow.doIt = (self.steps < self.newBornSteps);
+                self.actionStack.food.doIt = self.isPriority(self.turnSteps);
+                self.actionStack.defecate.doIt = self.isPriority(self.poopSteps);
+                self.actionStack.digest.doIt = (self.fat > buggers.minBugFat);
+                self.actionStack.flock.doIt = self.isPriority(self.flockSteps);
+                self.navigate();
+            };
+            self.feed = function (right) {
+                if (right) {
+                    self.foodRight++;
+                } else {
+                    self.foodLeft++;
+                }
+                self.fat += buggers.cellNutritionValue;
+            };
+            self.init = function () {
+                self.direction = Math.random() * 2 * pi;
+                self.fat = 4 * buggers.minBugFat;
+                self.flockSteps = 10 + Math.ceil(Math.random() * 25);
+                self.gender = helpers.random01();
+                self.maxSteps = buggers.maxBugSteps + helpers.randomSign() * Math.random() * 1000;
+                self.minRadius = Math.ceil(Math.random() * 7);
+                self.radius = self.minRadius;
+                self.poopSteps = Math.ceil(Math.random() * 40 + 10);
+                self.turnAmount = Math.random() * pi / 4;
+                self.turnSteps = Math.ceil(Math.random() * 100);
+                self.x = helpers.fixedDecimals((Math.random() * conway.spaceWidth) * interface.cellSize, 2);
+                self.y = helpers.fixedDecimals((Math.random() * conway.spaceHeight) * interface.cellSize, 2);
+            };
+        }
+        // },
     };
 
     var helpers = {
