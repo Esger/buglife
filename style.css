@@ -137,9 +137,21 @@ fieldset {
     font-size: 12px;
 }
 
-#bugdata td {
+#bugData table {
+    width: 100%;
+}
+
+#bugData td {
+    text-align: right;
+}
+
+#bugData td:not(:last-child) {
     padding-right: 10px;
-    text-align   : right;
+}
+
+#bugData td.smaller {
+    font-size: 9px;
+    width    : 300px;
 }
 
 #story {
