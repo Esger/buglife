@@ -31,7 +31,7 @@ $(function () {
 
         // Erase the canvas
         clearSpace: function () {
-            var ctx = this.canvas.getContext('2d');
+            let ctx = this.canvas.getContext('2d');
             ctx.fillStyle = "rgb(255, 255, 255)";
             ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
         },
@@ -46,7 +46,7 @@ $(function () {
 
         // Fade the old screen a bit to white
         fadeCells: function () {
-            var ctx = this.canvas.getContext('2d');
+            let ctx = this.canvas.getContext('2d');
             if ($('.trails').is(":checked")) {
                 ctx.fillStyle = "rgba(255, 255, 255, 0.05)";
             } else {
@@ -57,26 +57,28 @@ $(function () {
 
         // Fade the old graph a bit to white
         fadeGraph: function () {
-            var ctx = this.graphCanvas.getContext('2d');
+            let ctx = this.graphCanvas.getContext('2d');
             ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
             ctx.fillRect(0, 0, this.graphCanvas.width, this.graphCanvas.height);
         },
 
         // Draw the array with livecells
         drawCells: function () {
-            var ctx = this.canvas.getContext('2d');
+            let ctx = this.canvas.getContext('2d');
             ctx.fillStyle = "rgb(128, 128, 0)";
-            for (var i = 0; i < conway.liveCells.length; i += 1) {
+            const count = conway.liveCells.length;
+            let i = 0;
+            for (; i < count; i += 1) {
                 ctx.fillRect(conway.liveCells[i].x * this.cellSize, conway.liveCells[i].y * this.cellSize, this.cellSize, this.cellSize);
             }
             conway.cellsAlive = conway.liveCells.length;
         },
 
         drawBug: function (bug) {
-            var ctx = display.canvas.getContext('2d');
-            var adult = (bug.adult() && !bug.pregnant) ? 1 : 0;
-            var image = this.bugImages[bug.gender][adult];
-            var scale = Math.max(bug.radius, bug.minRadius) / 16;
+            let ctx = display.canvas.getContext('2d');
+            let adult = (bug.adult() && !bug.pregnant) ? 1 : 0;
+            let image = this.bugImages[bug.gender][adult];
+            let scale = Math.max(bug.radius, bug.minRadius) / 16;
             ctx.save();
             ctx.translate(bug.x, bug.y);
             ctx.rotate(bug.direction - PI / 2);
@@ -91,9 +93,9 @@ $(function () {
 
         // Draw the array with livecells
         drawGraph: function () {
-            var scaledSteps = Math.round(lifeSteps / xScale);
+            let scaledSteps = Math.round(lifeSteps / xScale);
             if (lifeSteps % xScale == 0) {
-                var ctx = graphCanvas.getContext('2d');
+                let ctx = graphCanvas.getContext('2d');
                 ctx.fillStyle = "rgb(128, 128, 0)";
                 ctx.fillRect(scaledSteps % graphCanvas.width, graphCanvas.height - cellsAlive * yScale, 1, 1);
                 ctx.fillStyle = (scaledSteps % 2 == 0) ? "rgba(128,0,0,0.3)" : "rgba(0,0,0)";
@@ -105,8 +107,9 @@ $(function () {
 
         // Uit object halen?
         showDataTable: function (bugs) {
+            var $tr;
             var color = function (thisBug) {
-                var rgbVal;
+                let rgbVal;
                 if (thisBug.gender == 1) {
                     if (thisBug.adult()) {
                         rgbVal = "193,39,45,0.7";
@@ -130,9 +133,11 @@ $(function () {
             };
             var addDataRow = function (bug) {
                 // Add bug properties to this array to show in data table
-                var dataItems = ['id', 'fat', 'turnAmount', 'turnSteps', 'pregnant', 'offspring', 'generation'];
-                var $row = $('<tr></tr>');
-                for (let i = 0; i < dataItems.length; i += 1) {
+                let dataItems = ['id', 'fat', 'turnAmount', 'turnSteps', 'pregnant', 'offspring', 'generation'];
+                let $row = $('<tr></tr>');
+                let i = 0;
+                const count = dataItems.length;
+                for (; i < count; i += 1) {
                     const item = dataItems[i];
                     if (bug) {
                         $tr.append(addDataCol(bug[item]));
@@ -144,13 +149,15 @@ $(function () {
             };
 
             controls.$bugCount.text(bugs.length);
-            var $tHeadContent = $('#bugData thead tr');
+            let $tHeadContent = $('#bugData thead tr');
             $tHeadContent.replaceWith(addDataRow());
-            for (var i = 0; i < bugs.length; i += 1) {
-                var thisBug = bugs[i];
-                var $oldTr = display.$bugData.find('tr#bug' + thisBug.id);
+            let i = 0;
+            const count = bugs.length;
+            for (; i < count; i += 1) {
+                let thisBug = bugs[i];
+                let $oldTr = display.$bugData.find('tr#bug' + thisBug.id);
                 if (thisBug.alive) {
-                    var $tr = $('<tr style="color:' + color(thisBug) + ';" id="bug' + thisBug.id + '"></tr>');
+                    $tr = $('<tr style="color:' + color(thisBug) + ';" id="bug' + thisBug.id + '"></tr>');
                     $tr.append(addDataRow(thisBug));
                     // $tr.append('<td>' + (thisBug.id + '').substr(-4) + '</td>');
                     // $tr.append('<td>' + Math.round(thisBug.fat) + '</td>');
@@ -165,7 +172,7 @@ $(function () {
                 }
             }
             $.each(display.$bugData.find('tr[id^="bug"]'), function () {
-                var thisTr = this;
+                let thisTr = this;
                 function idMatch(bug) {
                     return 'bug' + bug.id == thisTr.id;
                 }
@@ -278,8 +285,8 @@ $(function () {
 
             // Fill livecells with your own mouse drawing
             $('#thetoroid').on('click', function (event) {
-                var mouseX = Math.floor((event.offsetX ? (event.offsetX) : event.pageX - this.offsetLeft) / display.cellSize);
-                var mouseY = Math.floor((event.offsetY ? (event.offsetY) : event.pageY - this.offsetTop) / display.cellSize);
+                let mouseX = Math.floor((event.offsetX ? (event.offsetX) : event.pageX - this.offsetLeft) / display.cellSize);
+                let mouseY = Math.floor((event.offsetY ? (event.offsetY) : event.pageY - this.offsetTop) / display.cellSize);
                 conway.liveCells.push(conway.celXY(mouseX, mouseY));
                 conway.drawCells();
                 display.updateCellularData();
@@ -367,29 +374,30 @@ $(function () {
 
         initLiferules: function () {
             lifeSteps = 0;
-            var count;
-            var $checkbox;
-            for (count = 0; count < 10; count += 1) {
-                $checkbox = $('#newlife' + count);
+            let i = 0;
+            let $checkbox;
+            for (; i < 10; i += 1) {
+                $checkbox = $('#newlife' + i);
                 if ($checkbox.length) {
-                    this.liferules[count] = $checkbox.is(":checked");
+                    this.liferules[i] = $checkbox.is(":checked");
                 } else {
-                    this.liferules[count] = false;
+                    this.liferules[i] = false;
                 }
             }
-            for (count = 10; count < 19; count += 1) {
-                $checkbox = $('#staylife' + (count - 10));
+            i = 10;
+            for (; i < 19; i += 1) {
+                $checkbox = $('#staylife' + (i - 10));
                 if ($checkbox.length) {
-                    this.liferules[count] = $checkbox.is(":checked");
+                    this.liferules[i] = $checkbox.is(":checked");
                 } else {
-                    this.liferules[count] = false;
+                    this.liferules[i] = false;
                 }
             }
         },
 
         // Put new pair of values in array
         celXY: function (x, y) {
-            var cell = {
+            let cell = {
                 x: x,
                 y: y
             };
@@ -398,8 +406,9 @@ $(function () {
 
         // Fill livecells with random cellxy's
         fillRandom: function () {
-            var i;
-            for (i = 0; i < this.startnumberLivecells; i += 1) {
+            const count = this.startnumberLivecells;
+            let i = 0;
+            for (; i < count; i += 1) {
                 this.liveCells[i] = conway.celXY(Math.floor(Math.random() * this.spaceWidth), Math.floor(Math.random() * this.spaceHeight));
             }
         },
@@ -412,21 +421,25 @@ $(function () {
 
         // Set all neighbours to zero
         zeroNeighbours: function () {
-            var i;
-            for (i = 0; i < this.numberCells; i += 1) {
+            const count = this.numberCells;
+            let i = 0;
+            for (; i < count; i += 1) {
                 this.neighbours[i] = 0;
             }
         },
 
         // Tell neighbours around livecells they have a neighbour
         countNeighbours: function () {
-            var i, thisx, thisy, dx, dy,
-                count = this.liveCells.length;
-            for (i = 0; i < count; i += 1) {
-                thisx = this.liveCells[i].x;
-                thisy = this.liveCells[i].y;
-                for (dy = -1; dy < 2; dy += 1) {
-                    for (dx = -1; dx < 2; dx += 1) {
+            const count = this.liveCells.length;
+            const maxNeighbour = 2;
+            let i = 0;
+            for (; i < count; i += 1) {
+                let thisx = this.liveCells[i].x;
+                let thisy = this.liveCells[i].y;
+                let dy = -1;
+                for (; dy < maxNeighbour; dy += 1) {
+                    let dx = -1;
+                    for (; dx < maxNeighbour; dx += 1) {
                         this.neighbours[((thisy + dy) * this.spaceWidth + thisx + dx + this.numberCells) % this.numberCells] += 1;
                     }
                 }
@@ -436,19 +449,20 @@ $(function () {
 
         // Evaluate neighbourscounts for new livecells
         evalNeighbours: function () {
-            var i;
-            var self = this;
+            let self = this;
 
             function livecell() {
-                var y = Math.floor(i / self.spaceWidth);
-                var x = i - (y * self.spaceWidth);
+                let y = Math.floor(i / self.spaceWidth);
+                let x = i - (y * self.spaceWidth);
                 if (!buggers.eaten(x, y)) {
                     self.liveCells.push(conway.celXY(x, y));
                 }
             }
 
             this.liveCells = [];
-            for (i = 0; i < this.numberCells; i += 1) {
+            const count = this.numberCells;
+            let i = 0;
+            for (; i < count; i += 1) {
                 if (this.liferules[this.neighbours[i]]) {
                     livecell();
                 }
@@ -457,20 +471,20 @@ $(function () {
 
         // Scatter the bug's fat around into lifecells
         scatter: function (bug) {
-            var r, angle, x, y,
-                graveRadius = 50;
-            for (var i = bug.fat * buggers.graveMultiplier; i > 0; i -= 1) {
-                r = Math.random() * graveRadius + bug.maxRadius;
-                angle = Math.random() * TAU;
-                x = helpers.xWrap(bug.radius + Math.round(bug.x + Math.cos(angle) * r));
-                y = helpers.yWrap(bug.radius + Math.round(bug.y + Math.sin(angle) * r));
+            let graveRadius = 50;
+            let i = bug.fat * buggers.graveMultiplier;
+            for (; i > 0; i -= 1) {
+                let r = Math.random() * graveRadius + bug.maxRadius;
+                let angle = Math.random() * TAU;
+                let x = helpers.xWrap(bug.radius + Math.round(bug.x + Math.cos(angle) * r));
+                let y = helpers.yWrap(bug.radius + Math.round(bug.y + Math.sin(angle) * r));
                 conway.newLifeCells.push(conway.celXY(x, y));
             }
             bug.fat = 0;
         },
 
         addGlider: function (bug) {
-            var poo = {},
+            let poo = {},
                 // determine glider with opposite direction of bug
                 pooDirection = Math.round(((bug.direction + PI) % TAU) / PI * 4) % 8;
             cells = [];
@@ -478,10 +492,11 @@ $(function () {
             poo.x = Math.round(Math.cos(bug.direction + PI) * (bug.radius + 2) + bug.x);
             poo.y = Math.round(Math.sin(bug.direction + PI) * (bug.radius + 2) + bug.y);
             cells = $.extend(true, {}, conway.walkers[pooDirection]); // deep copy
-            var count = cells.length;
-            for (var i = 0; i < count; i += 1) {
+            const count = cells.length;
+            let i = 0;
+            for (; i < count; i += 1) {
                 if (cells.hasOwnProperty(i)) {
-                    var cell = cells[i];
+                    let cell = cells[i];
                     cell[0] = helpers.xWrap(cell[0] + poo.x);
                     cell[1] = helpers.yWrap(cell[1] + poo.y);
                     conway.newLifeCells.push(conway.celXY(cell[0], cell[1]));
@@ -505,7 +520,6 @@ $(function () {
         bugs: [],
         cellNutritionValue: 3,
         flocking: $('.flock').is(":checked"),
-        deadBugs: [],
         graveMultiplier: 10,
         flockingDistance: 50, // this.flockingDistance;
         repellingDistance: 5,
@@ -530,25 +544,25 @@ $(function () {
         initBugs: function () {
             this.bugId = 1;
             buggers.bugs = [];
-            this.deadBugs = [];
             this.addBugs(this.startBugsCount);
         },
 
         // Draw the bugs
         drawBugs: function () {
-            var thisBug;
-            for (var i = 0; i < buggers.bugs.length; i += 1) {
-                thisBug = buggers.bugs[i];
+            const count = buggers.bugs.length;
+            let i = 0;
+            for (; i < count; i += 1) {
+                let thisBug = buggers.bugs[i];
                 display.drawBug(thisBug);
             }
         },
 
         // Change gender of a bug if only one gender remains
         balanceGenders: function () {
-            var males = this.maleCount;
+            let males = this.maleCount;
             if (buggers.bugs.length > 1 && (males == 0 || males == buggers.bugs.length)) {
                 // alternate 1 en 0
-                var transgenderBug = buggers.bugs[0];
+                let transgenderBug = buggers.bugs[0];
                 if (!transgenderBug.pregnant) {
                     transgenderBug.flipGender();
                 }
@@ -557,9 +571,10 @@ $(function () {
 
         // Check if a liveCell is 'in' a bug, if so, feed the bug
         eaten: function (x, y) {
-            var thisBug;
-            for (var i = 0; i < buggers.bugs.length; i += 1) {
-                thisBug = buggers.bugs[i];
+            const count = buggers.bugs.length;
+            let i = 0;
+            for (; i < count; i += 1) {
+                const thisBug = buggers.bugs[i];
                 if (thisBug.overlaps(x, y)) {
                     thisBug.feed(thisBug.rightOrLeft(x, y));
                     return true;
@@ -569,25 +584,29 @@ $(function () {
         },
 
         moveBugs: function () {
-            for (var i = 0; i < buggers.bugs.length; i += 1) {
-                var thisBug = buggers.bugs[i];
+            const count = buggers.bugs.length;
+            let i = 0;
+            let deadBugs = [];
+            for (; i < count; i += 1) {
+                const thisBug = buggers.bugs[i];
                 thisBug.move();
                 if (!thisBug.alive) {
-                    this.deadBugs.push(i);
+                    deadBugs.push(i);
                 }
             }
             // Remove dead bugs
-            for (var j = this.deadBugs.length - 1; j >= 0; j -= 1) {
-                buggers.bugs.splice(this.deadBugs[j], 1);
+            let j = deadBugs.length - 1;
+            for (; j >= 0; j -= 1) {
+                buggers.bugs.splice(deadBugs[j], 1);
             }
-            this.deadBugs = [];
 
             this.balanceGenders();
         },
 
         addBugs: function (amount) {
-            for (var i = 0; i < amount; i += 1) {
-                var bug = new this.randomBug();
+            let i = 0;
+            for (; i < amount; i += 1) {
+                let bug = new this.randomBug();
                 bug.init();
                 buggers.bugs.push(bug);
             }
@@ -597,12 +616,12 @@ $(function () {
 
             // bug.action = 'giving birth';
 
-            var partnerBug = buggers.bugs.filter(function (bug) {
+            let partnerBug = buggers.bugs.filter(function (bug) {
                 return bug.id === bug.partnerId;
             })[0];
-            var strongestBug;
-            var weakestBug;
-            var oldestBug;
+            let strongestBug;
+            let weakestBug;
+            let oldestBug;
 
             if (partnerBug) {
                 partnerBug.offspring += 1;
@@ -622,7 +641,7 @@ $(function () {
             bug.pregnant = false;
             bug.recoverySteps = 0;
 
-            var newBornBug = new buggers.randomBug();
+            let newBornBug = new buggers.randomBug();
             newBornBug.init();
 
             newBornBug.parentId = (bug.gender == 0) ? bug.id : partnerBug.id;
@@ -642,7 +661,7 @@ $(function () {
 
         // If parent exists return it
         parent: function (momId) {
-            var motherBug = $.grep(buggers.bugs, function (bug) { return bug.id == momId; });
+            let motherBug = $.grep(buggers.bugs, function (bug) { return bug.id == momId; });
             if (motherBug.length) {
                 return motherBug[0];
             } else {
@@ -651,7 +670,7 @@ $(function () {
         },
 
         lastAdultBug: function () {
-            var lastBug = buggers.bugs[0];
+            let lastBug = buggers.bugs[0];
             if (buggers.bugs.length == 1 && lastBug.adult()) {
                 lastBug.gender = 0;
                 return true;
@@ -663,7 +682,7 @@ $(function () {
         // random bug object
         randomBug: function () {
             // return {
-            var self = this;
+            let self = this;
             self.action = '';
             self.actionStack = {
                 _01whelp: {
@@ -745,7 +764,7 @@ $(function () {
             self.x = 0;
             self.y = 0;
             self.navigate = function () {
-                var fn;
+                let fn;
                 self.action = [];
                 for (const action in self.actionStack) {
                     if (self.actionStack.hasOwnProperty(action) && self.actionStack[action].doIt) {
@@ -779,32 +798,33 @@ $(function () {
                 self.radius = self.getRadius();
             };
             self.calcAngle = function (pos) {
-                var dX = pos[0] - self.x;
-                var dY = pos[1] - self.y;
-                var angle = Math.atan2(dY, dX);
+                let dX = pos[0] - self.x;
+                let dY = pos[1] - self.y;
+                let angle = Math.atan2(dY, dX);
                 return angle;
             };
             self.calcDistance = function (thatBug) {
-                var dX = self.x - thatBug.x;
-                var dY = self.y - thatBug.y;
-                var distance = Math.sqrt(Math.pow((dX), 2) + Math.pow((dY), 2));
+                let dX = self.x - thatBug.x;
+                let dY = self.y - thatBug.y;
+                let distance = Math.sqrt(Math.pow((dX), 2) + Math.pow((dY), 2));
                 return distance;
             };
             self.converge = function () {
                 if (buggers.bugs.length > 1) {
                     // self.action = 'converge';
-                    var convergingPointDistance = 50; // Make variable input
-                    var xTotal = 0;
-                    var yTotal = 0;
-                    var sinTotal = 0;
-                    var cosTotal = 0;
-                    var meanPos = [];
-                    var targetPoint = [];
-                    var direction = 0;
-                    var bugCount = buggers.bugs.length;
-                    var doConverge = false;
-                    for (var i = 0; i < bugCount; i += 1) {
-                        var thisBug = buggers.bugs[i];
+                    let convergingPointDistance = 50; // Make variable input
+                    let xTotal = 0;
+                    let yTotal = 0;
+                    let sinTotal = 0;
+                    let cosTotal = 0;
+                    let meanPos = [];
+                    let targetPoint = [];
+                    let direction = 0;
+                    let bugCount = buggers.bugs.length;
+                    let doConverge = false;
+                    let i = 0;
+                    for (; i < bugCount; i += 1) {
+                        let thisBug = buggers.bugs[i];
                         if (self.differentBug(thisBug) && self.inConvergingRange(thisBug)) {
                             doConverge = true;
                             // get vector of thisBug
@@ -817,11 +837,11 @@ $(function () {
                     if (doConverge) {
                         meanPos[0] = xTotal / (bugCount - 1);
                         meanPos[1] = yTotal / (bugCount - 1);
-                        var meanDirection = Math.atan2(sinTotal, cosTotal);
+                        let meanDirection = Math.atan2(sinTotal, cosTotal);  // no function????????
 
                         targetPoint[0] = meanPos[0] + cosTotal * convergingPointDistance;
                         targetPoint[1] = meanPos[1] + sinTotal * convergingPointDistance;
-                        var directionToTargetPos = self.calcAngle(targetPoint);
+                        let directionToTargetPos = self.calcAngle(targetPoint);
 
                         self.nudge(directionToTargetPos);
                     }
@@ -841,7 +861,7 @@ $(function () {
             };
             self.feedOnParent = function () {
                 // self.action = 'parent';
-                var parentBug = buggers.parent(self.parentId);
+                let parentBug = buggers.parent(self.parentId);
                 if (parentBug) {
                     parentBug.fat -= 1;
                     self.fat += 1;
@@ -863,13 +883,14 @@ $(function () {
                 }
             };
             self.findPartner = function () {
-                var closestCandidatePartner = null;
-                var bugCount = buggers.bugs.length;
-                var closestDistance = Infinity;
-                for (var i = 0; i < bugCount; i += 1) {
-                    var thisBug = buggers.bugs[i];
+                let closestCandidatePartner = null;
+                const bugCount = buggers.bugs.length;
+                let closestDistance = Infinity;
+                let i = 0;
+                for (; i < bugCount; i += 1) {
+                    let thisBug = buggers.bugs[i];
                     if (self.mateable(thisBug)) {
-                        var distance = self.calcDistance(thisBug);
+                        let distance = self.calcDistance(thisBug);
                         if (distance < closestDistance) {
                             closestCandidatePartner = thisBug;
                         }
@@ -882,33 +903,35 @@ $(function () {
             };
             self.getRadius = function () {
                 // just pithagoras
-                var newRadius = Math.sqrt(
+                let newRadius = Math.sqrt(
                     Math.pow(self.maxSteps / 2, 2) -
                     Math.pow(self.steps - self.maxSteps / 2, 2)
                 ) * 2 * self.maxRadius / self.maxSteps;
                 return Math.round(newRadius);
             };
             self.headForPartner = function () {
-                var candidate = self.findPartner();
+                let candidate = self.findPartner();
                 if (candidate) {
                     if (self.together(candidate)) {
                         self.fertilize(candidate);
                     } else {
                         // self.action = 'head for ' + candidate.id;
-                        var candidatePos = [candidate.x, candidate.y];
-                        var candidateDirection = self.calcAngle(candidatePos);
+                        let candidatePos = [candidate.x, candidate.y];
+                        let candidateDirection = self.calcAngle(candidatePos);
                         self.nudge(candidateDirection);
                     }
                 }
             };
             self.inConvergingRange = function (thatBug) {
-                var distance = self.calcDistance(thatBug);
-                var inRange = distance < buggers.flockingDistance;
+                let distance = self.calcDistance(thatBug);
+                let inRange = distance < buggers.flockingDistance;
                 return inRange && thatBug.inFront(self);
             };
             self.decent = function () {
-                var decent = true;
-                for (let i = 0; i < buggers.bugs.length; i += 1) {
+                let decent = true;
+                const count = buggers.bugs.length;
+                let i = 0;
+                for (; i < count; i += 1) {
                     const thisBug = buggers.bugs[i];
                     if (self.differentBug(thisBug)) {
                         decent = decent && !thisBug.inConvergingRange(self);
@@ -917,7 +940,7 @@ $(function () {
                 return decent;
             };
             self.inFront = function (thatBug) {
-                var perpendicularAxis = thatBug.x * Math.sin(self.direction - PI / 2);
+                let perpendicularAxis = thatBug.x * Math.sin(self.direction - PI / 2);
                 if (self.movingDown()) {
                     return thatBug.y > perpendicularAxis;
                 } else {
@@ -950,8 +973,8 @@ $(function () {
             };
             // change self direction towards given direction a bit
             self.nudge = function (direction) {
-                var tempDirection = helpers.positiveAngle(direction - self.direction);
-                var nudgeAngle = PI / 32;
+                let tempDirection = helpers.positiveAngle(direction - self.direction);
+                let nudgeAngle = PI / 32;
                 if (tempDirection > PI) {
                     self.direction -= nudgeAngle;
                 } else {
@@ -964,7 +987,7 @@ $(function () {
             };
             self.reactToFood = function () {
                 if (self.foodLeft !== self.foodRight) {
-                    var right = self.foodRight > self.foodLeft;
+                    let right = self.foodRight > self.foodLeft;
                     // self.action = (right) ? 'food right' : 'food left';
                     self.turn(right);
                     self.foodRight = 0;
@@ -972,7 +995,7 @@ $(function () {
                 }
             };
             self.rightOrLeft = function (x, y) {
-                var bugAxis = Math.tan(self.direction) * x + self.y;
+                let bugAxis = Math.tan(self.direction) * x + self.y;
                 if (self.movingToRight()) {
                     return y > bugAxis; // food was on the right side of self if true
                 } else {
@@ -980,42 +1003,44 @@ $(function () {
                 }
             };
             self.together = function (thatBug) {
-                var minDistance = self.radius + thatBug.radius;
-                var distance = self.calcDistance(thatBug);
+                let minDistance = self.radius + thatBug.radius;
+                let distance = self.calcDistance(thatBug);
                 return distance < minDistance;
             };
             self.turn = function (right) {
-                var sign = (right) ? 1 : -1;
+                let sign = (right) ? 1 : -1;
                 self.direction += (sign * self.turnAmount);
                 self.direction = helpers.positiveAngle(self.direction);
             };
             self.turnAway = function () {
                 // self.action = 'turnAway';
-                var tooCloseBugs = self.actionStack._06divert.doIt;
-                var bugCount = tooCloseBugs.length;
+                let tooCloseBugs = self.actionStack._06divert.doIt;
+                let bugCount = tooCloseBugs.length;
                 if (bugCount > 0) {
-                    var xTotal = 0;
-                    var yTotal = 0;
-                    var meanPos = [];
-                    for (var i = 0; i < bugCount; i += 1) {
-                        var thisBug = tooCloseBugs[i];
+                    let xTotal = 0;
+                    let yTotal = 0;
+                    let meanPos = [];
+                    let i = 0;
+                    for (; i < bugCount; i += 1) {
+                        let thisBug = tooCloseBugs[i];
                         xTotal += thisBug.x;
                         yTotal += thisBug.y;
                     }
                     meanPos[0] = xTotal / bugCount;
                     meanPos[1] = yTotal / bugCount;
-                    var directionToMeanPos = self.calcAngle(meanPos);
+                    let directionToMeanPos = self.calcAngle(meanPos);
                     self.nudge(directionToMeanPos - PI);
                 }
             };
             self.watchForCloseBugsAhead = function () {
-                var bugCount = buggers.bugs.length;
-                var closeBugsAhead = [];
-                for (var i = 0; i < bugCount; i += 1) {
-                    var thisBug = buggers.bugs[i];
+                const bugCount = buggers.bugs.length;
+                let closeBugsAhead = [];
+                let i = 0;
+                for (; i < bugCount; i += 1) {
+                    let thisBug = buggers.bugs[i];
                     if (self.differentBug(thisBug) && self.inFront(thisBug)) {
-                        var minDistance = self.radius + thisBug.radius + buggers.repellingDistance;
-                        var distance = self.calcDistance(thisBug);
+                        let minDistance = self.radius + thisBug.radius + buggers.repellingDistance;
+                        let distance = self.calcDistance(thisBug);
                         if (distance < minDistance) {
                             closeBugsAhead.push(thisBug);
                         }
@@ -1051,7 +1076,7 @@ $(function () {
                 dec = 2;
             }
             // decimals -> power
-            var decimalFactor = Math.pow(10, dec);
+            let decimalFactor = Math.pow(10, dec);
             // return dec -> fraction digits
             return Math.round(num * decimalFactor) / decimalFactor;
         },
