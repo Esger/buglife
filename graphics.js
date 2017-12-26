@@ -370,7 +370,7 @@ $(function () {
             lifeSteps = 0;
             var count;
             var $checkbox;
-            for (count = 0; count < 10; count++) {
+            for (count = 0; count < 10; count += 1) {
                 $checkbox = $('#newlife' + count);
                 if ($checkbox.length) {
                     this.liferules[count] = $checkbox.is(":checked");
@@ -378,7 +378,7 @@ $(function () {
                     this.liferules[count] = false;
                 }
             }
-            for (count = 10; count < 19; count++) {
+            for (count = 10; count < 19; count += 1) {
                 $checkbox = $('#staylife' + (count - 10));
                 if ($checkbox.length) {
                     this.liferules[count] = $checkbox.is(":checked");
@@ -399,9 +399,9 @@ $(function () {
 
         // Fill livecells with random cellxy's
         fillRandom: function () {
-            var count;
-            for (count = 0; count < this.startnumberLivecells; count++) {
-                this.liveCells[count] = conway.celXY(Math.floor(Math.random() * this.spaceWidth), Math.floor(Math.random() * this.spaceHeight));
+            var i;
+            for (i = 0; i < this.startnumberLivecells; i += 1) {
+                this.liveCells[i] = conway.celXY(Math.floor(Math.random() * this.spaceWidth), Math.floor(Math.random() * this.spaceHeight));
             }
         },
 
@@ -413,20 +413,21 @@ $(function () {
 
         // Set all neighbours to zero
         zeroNeighbours: function () {
-            var count;
-            for (count = 0; count < this.numberCells; count++) {
-                this.neighbours[count] = 0;
+            var i;
+            for (i = 0; i < this.numberCells; i += 1) {
+                this.neighbours[i] = 0;
             }
         },
 
         // Tell neighbours around livecells they have a neighbour
         countNeighbours: function () {
-            var count, thisx, thisy, dx, dy;
-            for (count in this.liveCells) {
-                thisx = this.liveCells[count].x;
-                thisy = this.liveCells[count].y;
-                for (dy = -1; dy < 2; dy++) {
-                    for (dx = -1; dx < 2; dx++) {
+            var i, thisx, thisy, dx, dy,
+                count = this.liveCells.length;
+            for (i = 0; i < count; i += 1) {
+                thisx = this.liveCells[i].x;
+                thisy = this.liveCells[i].y;
+                for (dy = -1; dy < 2; dy += 1) {
+                    for (dx = -1; dx < 2; dx += 1) {
                         this.neighbours[((thisy + dy) * this.spaceWidth + thisx + dx + this.numberCells) % this.numberCells] += 1;
                     }
                 }
@@ -436,20 +437,20 @@ $(function () {
 
         // Evaluate neighbourscounts for new livecells
         evalNeighbours: function () {
-            var count;
+            var i;
             var self = this;
 
             function livecell() {
-                var y = Math.floor(count / self.spaceWidth);
-                var x = count - (y * self.spaceWidth);
+                var y = Math.floor(i / self.spaceWidth);
+                var x = i - (y * self.spaceWidth);
                 if (!buggers.eaten(x, y)) {
                     self.liveCells.push(conway.celXY(x, y));
                 }
             }
 
             this.liveCells = [];
-            for (count = 0; count < this.numberCells; count++) {
-                if (this.liferules[this.neighbours[count]]) {
+            for (i = 0; i < this.numberCells; i += 1) {
+                if (this.liferules[this.neighbours[i]]) {
                     livecell();
                 }
             }
@@ -459,7 +460,7 @@ $(function () {
         scatter: function (bug) {
             var r, angle, x, y,
                 graveRadius = 50;
-            for (var i = bug.fat * buggers.graveMultiplier; i > 0; i--) {
+            for (var i = bug.fat * buggers.graveMultiplier; i > 0; i -= 1) {
                 r = Math.random() * graveRadius + bug.maxRadius;
                 angle = Math.random() * TAU;
                 x = helpers.xWrap(bug.radius + Math.round(bug.x + Math.cos(angle) * r));
@@ -478,9 +479,10 @@ $(function () {
             poo.x = Math.round(Math.cos(bug.direction + PI) * (bug.radius + 2) + bug.x);
             poo.y = Math.round(Math.sin(bug.direction + PI) * (bug.radius + 2) + bug.y);
             cells = $.extend(true, {}, conway.walkers[pooDirection]); // deep copy
-            for (var key in cells) {
-                if (cells.hasOwnProperty(key)) {
-                    var cell = cells[key];
+            var count = cells.length;
+            for (var i = 0; i < count; i += 1) {
+                if (cells.hasOwnProperty(i)) {
+                    var cell = cells[i];
                     cell[0] = helpers.xWrap(cell[0] + poo.x);
                     cell[1] = helpers.yWrap(cell[1] + poo.y);
                     conway.newLifeCells.push(conway.celXY(cell[0], cell[1]));
