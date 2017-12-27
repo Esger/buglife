@@ -133,7 +133,7 @@ $(function () {
             };
             var addDataRow = function (bug) {
                 // Add bug properties to this array to show in data table
-                let dataItems = ['id', 'fat', 'turnAmount', 'turnSteps', 'offspring', 'generation', 'actionStack'];
+                let dataItems = ['id', 'bugSteps', 'fat', 'turnAmount', 'turnSteps', 'pregnant', 'offspring', 'generation'];
                 let $row = $('<tr></tr>');
                 let i = 0;
                 const count = dataItems.length;
@@ -524,7 +524,7 @@ $(function () {
         flocking: $('.flock').is(":checked"),
         graveMultiplier: 10,
         flockingDistance: 50, // this.flockingDistance;
-        repellingDistance: 5,
+        repellingDistance: 10,
         maxBugsCount: 250,
         maxBugSteps: 10000, // then they die
         minBugFat: 100,
@@ -689,6 +689,7 @@ $(function () {
             self.alive = true;
             self.closeBugsAhead = [];
             self.fat = 0;
+            self.flockingPeers = 7;
             self.foodLeft = 0;
             self.foodRight = 0;
             self.generation = 0;
@@ -748,42 +749,39 @@ $(function () {
                     (self.fat > buggers.birthFat) &&
                     ((self.gender == 0) || buggers.lastAdultBug());
             };
-            self.converge = function () {
-                if (buggers.bugs.length > 1) {
-                    let convergingPointDistance = 50; // Make variable input
-                    let xTotal = 0;
-                    let yTotal = 0;
-                    let sinTotal = 0;
-                    let cosTotal = 0;
-                    let meanPos = [];
-                    let targetPoint = [];
-                    let direction = 0;
-                    let bugCount = buggers.bugs.length;
-                    let doConverge = false;
-                    let i = 0;
-                    for (; i < bugCount; i += 1) {
-                        let thisBug = buggers.bugs[i];
-                        if (self.differentBug(thisBug) && self.inConvergingRange(thisBug)) {
-                            doConverge = true;
-                            // get vector of thisBug
-                            xTotal += thisBug.x;
-                            yTotal += thisBug.y;
-                            cosTotal += Math.cos(thisBug.direction);
-                            sinTotal += Math.sin(thisBug.direction);
+            self.findClosestBugsInfront = function () {
+                let closestBugs = [];
+                let closestDistance = Infinity;
+                const count = buggers.bugs.length;
+                let i = 0;
+                for (; i < count; i += 1) {
+                    let thisBug = buggers.bugs[i];
+                    if (self.differentBug(thisBug) && self.inFront(thisBug)) {
+                        let distance = self.calcDistance(thisBug);
+                        if (distance < closestDistance) {
+                            closestBugs.push(thisBug);
                         }
                     }
-                    if (doConverge) {
-                        meanPos[0] = xTotal / (bugCount - 1);
-                        meanPos[1] = yTotal / (bugCount - 1);
-                        let meanDirection = Math.atan2(sinTotal, cosTotal);  // no function????????
-
-                        targetPoint[0] = meanPos[0] + cosTotal * convergingPointDistance;
-                        targetPoint[1] = meanPos[1] + sinTotal * convergingPointDistance;
-                        let directionToTargetPos = self.calcAngle(targetPoint);
-
-                        self.nudge(directionToTargetPos);
+                }
+                return closestBugs.slice(-self.flockingPeers);
+            };
+            self.converge = function () {
+                if (buggers.bugs.length > 1) {
+                    let closestBugs = self.findClosestBugsInfront();
+                    if (closestBugs.length > 1) {
+                        let meanPoint = [0, 0];
+                        const count = closestBugs.length;
+                        let i = 0;
+                        for (; i < count; i += 1) {
+                            let thisBug = closestBugs[i];
+                            meanPoint[0] += thisBug.x;
+                            meanPoint[1] += thisBug.y;
+                        }
+                        meanPoint[0] = Math.round(meanPoint[0] / closestBugs.length);
+                        meanPoint[1] = Math.round(meanPoint[1] / closestBugs.length);
+                        let directionToClosestBugs = self.calcAngle(meanPoint);
+                        self.nudge(directionToClosestBugs);
                     }
-
                 }
             };
             self.differentBug = function (bug) {
@@ -884,9 +882,7 @@ $(function () {
             self.inFront = function (bug) {
                 let perpendicularAxis = function (x) {
                     let a = Math.tan(self.direction - PI / 2);
-                    // let b = self.y - a * self.x;
                     return a * (x - self.x) + self.y;
-                    // return a * x + b;
                 };
                 if (self.movingDown()) {
                     return bug.y < perpendicularAxis(bug.x);
@@ -1036,7 +1032,7 @@ $(function () {
             self.init = function () {
                 self.direction = Math.random() * TAU;
                 self.fat = 4 * buggers.minBugFat;
-                self.flockSteps = 10 + Math.ceil(Math.random() * 25);
+                self.flockSteps = 5 + Math.ceil(Math.random() * 10);
                 self.gender = helpers.random01();
                 self.maxSteps = buggers.maxBugSteps + helpers.randomSign() * Math.random() * 1000;
                 self.minRadius = Math.ceil(Math.random() * 7);
