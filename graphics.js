@@ -93,15 +93,15 @@ $(function () {
 
         // Draw the array with livecells
         drawGraph: function () {
-            let scaledSteps = Math.round(lifeSteps / xScale);
-            if (lifeSteps % xScale == 0) {
-                let ctx = graphCanvas.getContext('2d');
+            let scaledSteps = Math.round(conway.lifeSteps / display.xScale);
+            if (conway.lifeSteps % display.xScale == 0) {
+                let ctx = display.graphCanvas.getContext('2d');
                 ctx.fillStyle = "rgb(128, 128, 0)";
-                ctx.fillRect(scaledSteps % graphCanvas.width, graphCanvas.height - cellsAlive * yScale, 1, 1);
+                ctx.fillRect(scaledSteps % display.graphCanvas.width, display.graphCanvas.height - conway.cellsAlive * display.yScale, 1, 1);
                 ctx.fillStyle = (scaledSteps % 2 == 0) ? "rgba(128,0,0,0.3)" : "rgba(0,0,0)";
-                ctx.fillRect(scaledSteps % graphCanvas.width, graphCanvas.height - buggers.maleCount * 5, 1, 1);
+                ctx.fillRect(scaledSteps % display.graphCanvas.width, display.graphCanvas.height - buggers.maleCount * 5, 1, 1);
                 ctx.fillStyle = (scaledSteps % 2 == 0) ? "rgba(0,0,0)" : "rgba(0,0,128,0.3)";
-                ctx.fillRect(scaledSteps % graphCanvas.width, graphCanvas.height - buggers.femaleCount * 5, 1, 1);
+                ctx.fillRect(scaledSteps % display.graphCanvas.width, display.graphCanvas.height - buggers.femaleCount * 5, 1, 1);
             }
         },
 
@@ -220,32 +220,32 @@ $(function () {
                 addBugs(1);
             });
 
-            $('#graphtoggler').on('click', function () {
+            $('#graphtoggler').off().on('click', function () {
                 display.showGraph = !display.showGraph;
-                $('#thegraph').toggle('slow');
+                $('#lifeChart').toggle('slow');
             });
 
             // Toggle liferules checkboxes on or off
-            $('#liferulestoggler').on('click', function () {
+            $('#liferulestoggler').off().on('click', function () {
                 $('#liferules').toggle('slow');
             });
 
             // Toggle bugrules checkboxes on or off
-            $('#bugrulestoggler').on('click', function () {
+            $('#bugrulestoggler').off().on('click', function () {
                 $('#bugrules').toggle('slow');
             });
 
             // Toggle text on or off
-            $('#texttoggler').on('click', function () {
+            $('#texttoggler').off().on('click', function () {
                 $('#story').toggle('slow');
             });
 
-            $('#datatoggler').on('click', function () {
+            $('#datatoggler').off().on('click', function () {
                 display.showData = !display.showData;
                 $('#bugData').toggle('slow');
             });
 
-            $('#liferules input').on('click', function () {
+            $('#liferules input').off().on('click', function () {
                 conway.initLiferules();
             });
 
@@ -347,6 +347,7 @@ $(function () {
         speed: 0,
         startnumberLivecells: 0,
         lifeSteps: 0, // Number of iterations / steps done
+        prevSteps: 0,
         walkers: [],
 
         initLife: function () {
@@ -373,7 +374,7 @@ $(function () {
         },
 
         initLiferules: function () {
-            lifeSteps = 0;
+            conway.lifeSteps = 0;
             let i = 0;
             let $checkbox;
             for (; i < 10; i += 1) {
@@ -1089,7 +1090,6 @@ $(function () {
 
     var gogogo = null,
         interval = 0, // Milliseconds between iterations
-        prevSteps = 0,
         running = false,
         speedHandle = null;
 
@@ -1181,8 +1181,8 @@ $(function () {
             clearIntervals();
         }
         running = false;
-        lifeSteps = 0;
-        prevSteps = 0;
+        conway.lifeSteps = 0;
+        conway.prevSteps = 0;
         firstStep();
         $('.trails').attr('checked', true);
         if (running === false) {
@@ -1197,7 +1197,7 @@ $(function () {
             clearIntervals();
         }
         running = false;
-        lifeSteps = 0;
+        conway.lifeSteps = 0;
         initVariables();
         display.updateCellularData();
     }

@@ -87,40 +87,59 @@
 
         <div id="controls">
             <form id="lifecontrols">
-                <fieldset id="steppingcontrols">
-                    <a href="#"
-                       id="clearbutton"
-                       title="Clear"></a>
-                    <a href="#"
-                       id="startbutton"
-                       title="Start"></a>
-                    <a href="#"
-                       id="stopbutton"
-                       title="Stop"></a>
-                    <a href="#"
-                       class="hidden"
-                       id="prevbutton"
-                       title="Step back"></a>
-                    <a href="#"
-                       class="hidden"
-                       id="stepbutton"
-                       title="Step"></a>
-                    <a href="#"
-                       id="randombutton"
-                       title="Random"></a>
-                    <label><input class="trails" type="checkbox" checked /> Trails</label>
-                </fieldset>
-                <fieldset id="data">
+                <div class="buttonRow">
+                    <div id="steppingcontrols">
+                        <a href="#"
+                           id="clearbutton"
+                           title="Clear"></a>
+                        <a href="#"
+                           id="startbutton"
+                           title="Start"></a>
+                        <a href="#"
+                           id="stopbutton"
+                           title="Stop"></a>
+                        <a href="#"
+                           class="hidden"
+                           id="prevbutton"
+                           title="Step back"></a>
+                        <a href="#"
+                           class="hidden"
+                           id="stepbutton"
+                           title="Step"></a>
+                        <a href="#"
+                           id="randombutton"
+                           title="Random"></a>
+                        <label><input class="trails" type="checkbox" checked /> Trails</label>
+                    </div>
+                    <div id="panels">
+                        <a href="#"
+                           id="liferulestoggler"
+                           class="toggler">Life settings</a>
+                        <a href="#"
+                           id="bugrulestoggler"
+                           class="toggler">Bug settings</a>
+                        <a href="#"
+                           id="datatoggler"
+                           class="toggler">Bug data</a>
+                        <a href="#"
+                           id="graphtoggler"
+                           class="toggler">Chart</a>
+                        <a href="#"
+                           id="texttoggler"
+                           class="toggler">Story</a>
+                    </div>
+                </div>
+                <div id="data">
                     <p>Generations (x-axis): <span id="teller">0</span> - Live cells (y-axis): <span id="cellsalive">0</span> -
                         <span id="speed">0</span> generations/sec. - <span id="bugCount"></span> bugs alive
                     </p>
-                </fieldset>
-                <fieldset id="bugrules">
+                </div>
+                <div id="bugrules">
                     <h2>Bug settings</h2>
                     <div>
                         <label><input class="cellNutrition" type="number" value="3" step="0.05" /> Cell Nutrition Value</label>
                         <label><input class="startBugCount" type="number" value="3" step="1" /> Bugs to start with</label>
-                        <label><input class="flockingPeers" type="number" value="50" step="5" /> Flocking peers</label>
+                        <label><input class="flockingPeers" type="number" value="50" step="1" /> Flocking peers</label>
                         <label><input class="repellingDistance" type="number" value="5" step="5" /> Repelling distance</label>
                         <label><input class="flock" type="checkbox" checked/> Flock</label>
                         <label><a href="#"
@@ -129,9 +148,9 @@
                             title="Add a bug">Add&nbsp;a&nbsp;bug</a>
                         </label>
                     </div>
-                </fieldset>
-                <fieldset id="liferules"
-                          action="#">
+                </div>
+                <div id="liferules"
+                     action="#">
                     <h2>Life settings</h2>
                     <div>
                         <label>&lsquo;Stay&rsquo; rules:</label>
@@ -215,31 +234,17 @@
                                value="0" />8</label>
 
                     </div>
-                </fieldset>
-            </form>
-            <form id="panels">
-                <a href="#"
-                   id="bugrulestoggler"
-                   class="toggler">Bug settings</a>
-                <a href="#"
-                   id="liferulestoggler"
-                   class="toggler">Life settings</a>
-                <a href="#"
-                   id="datatoggler"
-                   class="toggler">Bug data</a>
-                <a href="#"
-                   id="graphtoggler"
-                   class="toggler">Chart</a>
-                <a href="#"
-                   id="texttoggler"
-                   class="toggler">Story</a>
+                </div>
             </form>
         </div>
 
-        <canvas id="thegraph"
-                class="hidden"
-                width="750"
-                height="250"></canvas>
+        <div id="lifeChart"
+             class="hidden">
+            <h2>Life in time</h2>
+            <canvas id="thegraph"
+                    width="750"
+                    height="250"></canvas>
+        </div>
         <div id="bugData"
              class="">
             <h2>Bugs alive</h2>
@@ -271,6 +276,7 @@
                    title="wikipedia">Wikipedia</a> for an explanation of Conway&rsquo;s life. As life on it's own has a tendency to die out, I figured to introduce another life form that interacts with the cellular automata, to keep things going.</p>
             <ul>
                 <li>These 'bugs' that I introduced eat the life cells</li>
+                <li>Their lifespan is limited</li>
                 <li>The life cells have a certain nutrition value that adds up to the bugs fat</li>
                 <li>The more they eat, the more they grow - to a certain extent</li>
                 <li>As the bugs move, they need energy as well, which is provided by 'burning' their fat</li>
