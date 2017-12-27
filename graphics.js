@@ -133,7 +133,7 @@ $(function () {
             };
             var addDataRow = function (bug) {
                 // Add bug properties to this array to show in data table
-                let dataItems = ['id', 'bugSteps', 'fat', 'turnAmount', 'turnSteps', 'pregnant', 'offspring', 'generation'];
+                let dataItems = ['id', 'steps', 'fat', 'turnAmount', 'turnSteps', 'pregnant', 'offspring', 'generation'];
                 let $row = $('<tr></tr>');
                 let i = 0;
                 const count = dataItems.length;
@@ -188,7 +188,7 @@ $(function () {
 
         $startBugCount: $('.startBugCount'),
         $bugCount: $('#bugCount'),
-        $flockingDistance: $('.flockingDistance'),
+        $flockingPeers: $('.flockingPeers'),
         $repellingDistance: $('.repellingDistance'),
 
         initListeners: function () {
@@ -253,9 +253,9 @@ $(function () {
             controls.$startBugCount.on('change', function () {
                 buggers.startBugsCount = parseInt(controls.$startBugCount.val());
             });
-            controls.$flockingDistance.val(buggers.flockingDistance);
-            controls.$flockingDistance.on('change', function () {
-                buggers.flockingDistance = parseInt(controls.$flockingDistance.val());
+            controls.$flockingPeers.val(buggers.flockingPeers);
+            controls.$flockingPeers.on('change', function () {
+                buggers.flockingPeers = parseInt(controls.$flockingPeers.val());
             });
             controls.$repellingDistance.val(buggers.repellingDistance);
             controls.$repellingDistance.on('change', function () {
@@ -524,6 +524,7 @@ $(function () {
         flocking: $('.flock').is(":checked"),
         graveMultiplier: 10,
         flockingDistance: 50, // this.flockingDistance;
+        flockingPeers: 7,
         repellingDistance: 10,
         maxBugsCount: 250,
         maxBugSteps: 10000, // then they die
