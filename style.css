@@ -146,10 +146,6 @@ fieldset {
     text-align: right;
 }
 
-#bugData td:not(:last-child) {
-    padding-right: 10px;
-}
-
 #bugData td.smaller {
     font-size: 9px;
     width    : 300px;
