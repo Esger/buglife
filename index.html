@@ -5,7 +5,7 @@
           content="chrome=1" />
     <meta http-equiv="Content-Type"
           content="text/html; charset=UTF-8" />
-    <title>Conway&rsquo;s game of life - Lab by ashWare</title>
+    <title>Conway&rsquo;s game of life in Rabbits and Foxes - by ashWare</title>
     <link rel="stylesheet"
           href="style.css" />
     <link rel="apple-touch-icon"
@@ -81,178 +81,178 @@
                target="_blank">ashWare</a></h1>
         <canvas id="thetoroid"
                 width="750"
-                height="375">
+                height="464">
         </canvas>
         <span class="noCanvas hidden">"If you see this, you&rsquo;d better install Firefox or Chrome or Opera or Safari or &hellip;"</span>
 
         <div id="controls">
             <form id="lifecontrols">
-                <fieldset id="steppingcontrols">
-                    <a href="#"
-                       id="clearbutton"
-                       title="Clear"></a>
-                    <a href="#"
-                       id="startbutton"
-                       title="Start"></a>
-                    <a href="#"
-                       id="stopbutton"
-                       title="Stop"></a>
-                    <a href="#"
-                       class="hidden"
-                       id="prevbutton"
-                       title="Step back"></a>
-                    <a href="#"
-                       class="hidden"
-                       id="stepbutton"
-                       title="Step"></a>
-                    <a href="#"
-                       id="randombutton"
-                       title="Random"></a>
-                    <label><input class="trails" type="checkbox" checked /> Trails</label>
-                </fieldset>
-                <fieldset id="data">
+                <div class="buttonRow">
+                    <div id="steppingcontrols">
+                        <a href="#"
+                           id="clearbutton"
+                           title="Clear"></a>
+                        <a href="#"
+                           id="startbutton"
+                           title="Start"></a>
+                        <a href="#"
+                           id="stopbutton"
+                           title="Stop"></a>
+                        <a href="#"
+                           class="hidden"
+                           id="prevbutton"
+                           title="Step back"></a>
+                        <a href="#"
+                           class="hidden"
+                           id="stepbutton"
+                           title="Step"></a>
+                        <a href="#"
+                           id="randombutton"
+                           title="Random"></a>
+                        <label><input class="trails" type="checkbox" checked /> Trails</label>
+                    </div>
+                    <div id="panels">
+                        <a href="#"
+                           id="liferulestoggler"
+                           class="toggler">Life settings</a>
+                        <a href="#"
+                           id="bugrulestoggler"
+                           class="toggler">Bug settings</a>
+                        <a href="#"
+                           id="datatoggler"
+                           class="toggler">Bug data</a>
+                        <a href="#"
+                           id="graphtoggler"
+                           class="toggler">Chart</a>
+                        <a href="#"
+                           id="texttoggler"
+                           class="toggler">Story</a>
+                    </div>
+                </div>
+                <div id="data">
                     <p>Generations (x-axis): <span id="teller">0</span> - Live cells (y-axis): <span id="cellsalive">0</span> -
                         <span id="speed">0</span> generations/sec. - <span id="bugCount"></span> bugs alive
                     </p>
-                </fieldset>
-                <fieldset id="bugrules">
-                    <label><input class="cellNutrition" type="number" value="3" step="0.05" /> Cell Nutrition Value</label>
-                    <label><input class="startBugCount" type="number" value="3" step="1" /> Bugs to start with</label>
-                    <label><input class="flockingDistance" type="number" value="50" step="5" /> Min attraction distance</label><br>
-                    <label><input class="flock" type="checkbox" checked/> Flock</label><br>
-                    <label><a href="#"
-                        id="bugbutton"
-                        title="Add a bug">Add&nbsp;a&nbsp;bug</a>
-                    </label>
+                </div>
+                <div id="bugrules">
+                    <h2>Bug settings</h2>
+                    <div>
+                        <label><input class="cellNutrition" type="number" value="3" step="0.05" /> Cell Nutrition Value</label>
+                        <label><input class="startBugCount" type="number" value="3" step="1" /> Bugs to start with</label>
+                        <label><input class="flockingPeers" type="number" value="50" step="1" /> Flocking peers</label>
+                        <label><input class="repellingDistance" type="number" value="5" step="5" /> Repelling distance</label>
+                        <label><input class="flock" type="checkbox" checked/> Flock</label>
+                        <label><a href="#"
+                            id="bugbutton"
+                            class="button"
+                            title="Add a bug">Add&nbsp;a&nbsp;bug</a>
+                        </label>
+                    </div>
+                </div>
+                <div id="liferules"
+                     action="#">
+                    <h2>Life settings</h2>
+                    <div>
+                        <label>&lsquo;Stay&rsquo; rules:</label>
+                        <label><input id="staylife0"
+                               type="checkbox"
+                               name="staylife0"
+                               value="0" />0</label>
+                        <label><input id="staylife1"
+                               type="checkbox"
+                               name="staylife1"
+                               value="0" />1</label>
+                        <label><input id="staylife2"
+                               type="checkbox"
+                               name="staylife2"
+                               value="0"
+                               checked />2</label>
+                        <label><input id="staylife3"
+                               type="checkbox"
+                               name="staylife3"
+                               value="0"
+                               checked />3</label>
+                        <label><input id="staylife4"
+                               type="checkbox"
+                               name="staylife4"
+                               value="0" />4</label>
+                        <label><input id="staylife5"
+                               type="checkbox"
+                               name="staylife5"
+                               value="0" />5</label>
+                        <label><input id="staylife6"
+                               type="checkbox"
+                               name="staylife6"
+                               value="0" />6</label>
+                        <label><input id="staylife7"
+                               type="checkbox"
+                               name="staylife7"
+                               value="0" />7</label>
+                        <label><input id="staylife8"
+                               type="checkbox"
+                               name="staylife8"
+                               value="0" />8</label>
+                    </div>
+                    <div>
+                        <label>&lsquo;New&rsquo; rules:</label>
+                        <label><input id="newlife0"
+                               type="checkbox"
+                               name="newlife0"
+                               value="0" />0</label>
+                        <label><input id="newlife1"
+                               type="checkbox"
+                               name="newlife1"
+                               value="0" />1</label>
+                        <label><input id="newlife2"
+                               type="checkbox"
+                               name="newlife2"
+                               value="0" />2</label>
+                        <label><input id="newlife3"
+                               type="checkbox"
+                               name="newlife3"
+                               value="0"
+                               checked />3</label>
+                        <label><input id="newlife4"
+                               type="checkbox"
+                               name="newlife4"
+                               value="0" />4</label>
+                        <label><input id="newlife5"
+                               type="checkbox"
+                               name="newlife5"
+                               value="0" />5</label>
+                        <label> <input id="newlife6"
+                               type="checkbox"
+                               name="newlife6"
+                               value="0" />6</label>
+                        <label><input id="newlife7"
+                               type="checkbox"
+                               name="newlife7"
+                               value="0" />7</label>
+                        <label><input id="newlife8"
+                               type="checkbox"
+                               name="newlife8"
+                               value="0" />8</label>
 
-                </fieldset>
-                <fieldset id="liferules"
-                          action="#">
-                    &lsquo;Stay&rsquo; rules:<input id="staylife0"
-                           type="checkbox"
-                           name="staylife0"
-                           value="0" /><label>0</label>
-                    <input id="staylife1"
-                           type="checkbox"
-                           name="staylife1"
-                           value="0" /><label>1</label>
-                    <input id="staylife2"
-                           type="checkbox"
-                           name="staylife2"
-                           value="0"
-                           checked /><label>2</label>
-                    <input id="staylife3"
-                           type="checkbox"
-                           name="staylife3"
-                           value="0"
-                           checked /><label>3</label>
-                    <input id="staylife4"
-                           type="checkbox"
-                           name="staylife4"
-                           value="0" /><label>4</label>
-                    <input id="staylife5"
-                           type="checkbox"
-                           name="staylife5"
-                           value="0" /><label>5</label>
-                    <input id="staylife6"
-                           type="checkbox"
-                           name="staylife6"
-                           value="0" /><label>6</label>
-                    <input id="staylife7"
-                           type="checkbox"
-                           name="staylife7"
-                           value="0" /><label>7</label>
-                    <input id="staylife8"
-                           type="checkbox"
-                           name="staylife8"
-                           value="0" /><label>8</label><br /> &lsquo;New&rsquo; rules:
-                    <input id="newlife0"
-                           type="checkbox"
-                           name="newlife0"
-                           value="0" /><label>0</label>
-                    <input id="newlife1"
-                           type="checkbox"
-                           name="newlife1"
-                           value="0" /><label>1</label>
-                    <input id="newlife2"
-                           type="checkbox"
-                           name="newlife2"
-                           value="0" /><label>2</label>
-                    <input id="newlife3"
-                           type="checkbox"
-                           name="newlife3"
-                           value="0"
-                           checked /><label>3</label>
-                    <input id="newlife4"
-                           type="checkbox"
-                           name="newlife4"
-                           value="0" /><label>4</label>
-                    <input id="newlife5"
-                           type="checkbox"
-                           name="newlife5"
-                           value="0" /><label>5</label>
-                    <input id="newlife6"
-                           type="checkbox"
-                           name="newlife6"
-                           value="0" /><label>6</label>
-                    <input id="newlife7"
-                           type="checkbox"
-                           name="newlife7"
-                           value="0" /><label>7</label>
-                    <input id="newlife8"
-                           type="checkbox"
-                           name="newlife8"
-                           value="0" /><label>8</label>
-                </fieldset>
-            </form>
-            <form id="panels">
-                <a href="#"
-                   id="liferulestoggler"
-                   class="toggler">Life settings</a>
-                <a href="#"
-                   id="bugrulestoggler"
-                   class="toggler">Bug settings</a>
-                <a href="#"
-                   id="datatoggler"
-                   class="toggler r">Bug data</a>
-                <a href="#"
-                   flockingDistance
-                   id="graphtoggler"
-                   class="toggler">Chart</a>
-                <a href="#"
-                   id="texttoggler"
-                   class="toggler r">Story</a>
+                    </div>
+                </div>
             </form>
         </div>
 
-        <canvas id="thegraph"
-                class="hidden"
-                width="750"
-                height="250"></canvas>
-        <div id="bugData"
+        <div id="lifeChart"
              class="hidden">
+            <h2>Life in time</h2>
+            <canvas id="thegraph"
+                    width="750"
+                    height="250"></canvas>
+        </div>
+        <div id="bugData"
+             class="">
             <h2>Bugs alive</h2>
             <table>
                 <thead>
-                    <tr>
-                        <td>Id</td>
-                        <!-- <td>Gender</td> -->
-                        <td>Fat</td>
-                        <!-- <td>Radius</td> -->
-                        <!-- <td>Direction</td> -->
-                        <!-- <td>X</td>
-                        <td>Y</td> -->
-                        <td>Direction</td>
-                        <!-- <td>BounceSteps</td> -->
-                        <!-- <td>RecoverySteps</td> -->
-                        <td>turnAmount</td>
-                        <td>turnSteps</td>
-                        <td>shitSteps</td>
-                        <td>Offspring</td>
-                        <td>Generation</td>
-                        <td>Action</td>
-                    </tr>
+                    <tr></tr>
                 </thead>
+                <tbody></tbody>
             </table>
         </div>
         <div id="story"
@@ -276,6 +276,7 @@
                    title="wikipedia">Wikipedia</a> for an explanation of Conway&rsquo;s life. As life on it's own has a tendency to die out, I figured to introduce another life form that interacts with the cellular automata, to keep things going.</p>
             <ul>
                 <li>These 'bugs' that I introduced eat the life cells</li>
+                <li>Their lifespan is limited</li>
                 <li>The life cells have a certain nutrition value that adds up to the bugs fat</li>
                 <li>The more they eat, the more they grow - to a certain extent</li>
                 <li>As the bugs move, they need energy as well, which is provided by 'burning' their fat</li>

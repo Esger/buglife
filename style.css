@@ -44,10 +44,6 @@ h1 {
     line-height: 24px;
 }
 
-h2, h3 {
-    margin-top: 18px;
-}
-
 p {
     font-size: 14px;
 }
@@ -74,17 +70,13 @@ form {
     display: block;
 }
 
-fieldset {
-    border: none;
-}
-
 input, label {
     color: #404000;
     font : 12px bold 'trebuchet MS';
 }
 
 #bugrules a, #bugrules input, #liferules input, .cellsizer, .flock, .history, .trails, input[type='number'] {
-    margin: 5px 3px 0 10px;
+    margin: 5px 3px 0 0;
 }
 
 input[type='number'] {
@@ -108,18 +100,42 @@ canvas {
     display: none;
 }
 
-fieldset {
-    margin: 12px 0 18px;
-    border: 0 solid black;
+#bugrules > div, #liferules > div {
+    display        : flex;
+    flex-direction : row;
+    flex-wrap      : wrap;
+    justify-content: flex-start;
+    width          : 500px;
+}
+
+#bugrules > div > label {
+    flex: 1 0 200px;
+}
+
+#liferules > div > label {
+    flex: 1 0 25px;
+}
+
+#liferules > div > label:first-child {
+    flex: 1 0 60px;
 }
 
 #data a, #data p {
     font-size: 12px;
 }
 
-#bugdata td {
-    padding-right: 10px;
-    text-align   : right;
+#bugData table {
+    width    : 100%;
+    max-width: 100%;
+}
+
+#bugData td {
+    text-align: right;
+}
+
+#bugData td.smaller {
+    font-size: 9px;
+    width    : 300px;
 }
 
 #story {
@@ -131,44 +147,58 @@ fieldset {
     text-indent: -17px;
 }
 
-#controls {
-    display         : -webkit-box;
-    display         : -ms-flexbox;
-    display         : flex;
-    -webkit-box-pack: justify;
-    -ms-flex-pack   : justify;
-    justify-content : space-between;
-    margin-bottom   : 12px;
+.buttonRow {
+    display        : flex;
+    flex-direction : row;
+    justify-content: space-between;
+}
+
+.buttonRow div {
+    display       : flex;
+    flex-direction: row;
+}
+
+.buttonRow div a, .buttonRow div label {
+    display: inline-block;
+
 }
 
 #lifecontrols {
-    display              : -webkit-box;
-    display              : -ms-flexbox;
-    display              : flex;
-    -webkit-box-orient   : vertical;
-    -webkit-box-direction: normal;
-    -ms-flex-direction   : column;
-    flex-direction       : column;
+    display        : flex;
+    flex-direction : column;
+    justify-content: flex-start;
 }
 
-#lifecontrols fieldset {
-    -webkit-box-flex: 0;
-    -ms-flex        : 0 1 auto;
-    flex            : 0 1 auto;
-}
-
-#steppingcontrols::after {
-    content: '';
-    display: block;
-    clear  : both;
+#lifecontrols > div {
+    margin: 0 0 16px;
+    border: 0 solid black;
+    /* flex          : 0 1 auto;
+    display       : flex;
+    flex-direction: row; */
 }
 
 #steppingcontrols a {
-    float            : left;
     width            : 24px;
     height           : 21px;
     background-image : url("images/buttons.gif");
     background-repeat: no-repeat;
+}
+
+#panels {
+    display        : flex;
+    justify-content: flex-end;
+}
+
+#panels a {
+    flex: 1 1 100px;
+}
+
+#controls {
+    margin-bottom: 12px;
+}
+
+#controls a.hidden, .hidden {
+    display: none;
 }
 
 #controls #startbutton {
@@ -224,9 +254,17 @@ fieldset {
     background-position: -50px -125px;
 }
 
-#controls a.toggler, #data a.toggler {
+a.button, a.toggler {
     background-image: none;
-    color           : #404000;
+    background-color: #8c8c00;
+    border-radius   : 3px;
+    padding         : 1px 8px;
+    margin-left     : 8px;
+    color           : #dd0;
+    text-decoration : none;
+    font-weight     : bold;
+    letter-spacing  : 1px;
+    white-space     : nowrap;
 }
 
 a.toggler:hover {
@@ -241,34 +279,11 @@ a.toggler:hover {
     display: none;
 }
 
-#controls a.hidden, .hidden {
-    display: none;
-}
-
-#panels {
-    display              : -webkit-box;
-    display              : -ms-flexbox;
-    display              : flex;
-    -webkit-box-orient   : vertical;
-    -webkit-box-direction: normal;
-    -ms-flex-direction   : column;
-    flex-direction       : column;
-    -webkit-box-align    : end;
-    -ms-flex-align       : end;
-    align-items          : flex-end;
-}
-
 #ads {
     width      : 121px;
     height     : 600px;
     float      : right;
     margin-left: 10px;
-}
-
-.chromeFrameInstallDefaultStyle {
-    width : 100%;
-    /* default is 800px */
-    border: 5px solid blue;
 }
 
 /* Google+1 */
