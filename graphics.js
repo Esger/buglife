@@ -84,8 +84,18 @@ $(function () {
             ctx.rotate(bug.direction - PI / 2);
             ctx.scale(scale, scale);
             ctx.drawImage(image, - 16, - 16);
-            ctx.fillStyle = "rgb(0,0,0)";
             if (this.showData) {
+                let progressRadius = Math.max(bug.radius - 2.5, 1);
+                let bugRear = 3 * PI / 2;
+                let progress = (1 - bug.steps / bug.maxSteps) * PI / 2;
+                let startAngle = bugRear - progress;
+                let endAngle = bugRear + progress;
+                ctx.strokeStyle = "rgba(0,255,0,.7)";
+                ctx.lineWidth = '3';
+                ctx.beginPath();
+                ctx.arc(0, 0, progressRadius, startAngle, endAngle);
+                ctx.stroke();
+                ctx.fillStyle = "rgb(0,0,0)";
                 ctx.fillText(bug.id, - 6, - 2);
             }
             ctx.restore();
@@ -133,7 +143,7 @@ $(function () {
             };
             var addDataRow = function (bug) {
                 // Add bug properties to this array to show in data table
-                let dataItems = ['id', 'steps', 'fat', 'turnAmount', 'turnSteps', 'pregnant', 'offspring', 'generation'];
+                let dataItems = ['id', 'fat', 'turnAmount', 'turnSteps', 'pregnant', 'offspring', 'generation'];
                 let $row = $('<tr></tr>');
                 let i = 0;
                 const count = dataItems.length;
@@ -747,9 +757,9 @@ $(function () {
                 return distance;
             };
             self.canWhelp = function () {
-                return (self.recoverySteps > buggers.pregnancySteps) &&
+                return (self.recoverySteps > buggers.pregnancySteps || buggers.lastAdultBug()) &&
                     (self.fat > buggers.birthFat) &&
-                    ((self.gender == 0) || buggers.lastAdultBug());
+                    (self.gender == 0);
             };
             self.findClosestBugsInfront = function () {
                 let closestBugs = [];
@@ -923,7 +933,9 @@ $(function () {
                             if (self.isPriority(self.flockSteps) && buggers.flocking) {
                                 self.actionStack.push('converge');
                             } else {
-                                if (self.isPriority(self.turnSteps)) { self.actionStack.push('reactToFood'); }
+                                if (self.isPriority(self.turnSteps)) {
+                                    self.actionStack.push('reactToFood');
+                                }
                             }
                         }
                     }
