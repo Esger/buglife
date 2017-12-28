@@ -101,23 +101,37 @@ canvas {
 }
 
 #bugrules > div, #liferules > div {
-    display        : flex;
-    flex-direction : row;
-    flex-wrap      : wrap;
-    justify-content: flex-start;
-    width          : 500px;
+    display              : -webkit-box;
+    display              : -ms-flexbox;
+    display              : flex;
+    -webkit-box-orient   : horizontal;
+    -webkit-box-direction: normal;
+    -ms-flex-direction   : row;
+    flex-direction       : row;
+    -ms-flex-wrap        : wrap;
+    flex-wrap            : wrap;
+    -webkit-box-pack     : start;
+    -ms-flex-pack        : start;
+    justify-content      : flex-start;
+    width                : 500px;
 }
 
 #bugrules > div > label {
-    flex: 1 0 200px;
+    -webkit-box-flex: 1;
+    -ms-flex        : 1 0 200px;
+    flex            : 1 0 200px;
 }
 
 #liferules > div > label {
-    flex: 1 0 25px;
+    -webkit-box-flex: 1;
+    -ms-flex        : 1 0 25px;
+    flex            : 1 0 25px;
 }
 
 #liferules > div > label:first-child {
-    flex: 1 0 60px;
+    -webkit-box-flex: 1;
+    -ms-flex        : 1 0 60px;
+    flex            : 1 0 60px;
 }
 
 #data a, #data p {
@@ -148,14 +162,26 @@ canvas {
 }
 
 .buttonRow {
-    display        : flex;
-    flex-direction : row;
-    justify-content: space-between;
+    display              : -webkit-box;
+    display              : -ms-flexbox;
+    display              : flex;
+    -webkit-box-orient   : horizontal;
+    -webkit-box-direction: normal;
+    -ms-flex-direction   : row;
+    flex-direction       : row;
+    -webkit-box-pack     : justify;
+    -ms-flex-pack        : justify;
+    justify-content      : space-between;
 }
 
 .buttonRow div {
-    display       : flex;
-    flex-direction: row;
+    display              : -webkit-box;
+    display              : -ms-flexbox;
+    display              : flex;
+    -webkit-box-orient   : horizontal;
+    -webkit-box-direction: normal;
+    -ms-flex-direction   : row;
+    flex-direction       : row;
 }
 
 .buttonRow div a, .buttonRow div label {
@@ -164,9 +190,16 @@ canvas {
 }
 
 #lifecontrols {
-    display        : flex;
-    flex-direction : column;
-    justify-content: flex-start;
+    display              : -webkit-box;
+    display              : -ms-flexbox;
+    display              : flex;
+    -webkit-box-orient   : vertical;
+    -webkit-box-direction: normal;
+    -ms-flex-direction   : column;
+    flex-direction       : column;
+    -webkit-box-pack     : start;
+    -ms-flex-pack        : start;
+    justify-content      : flex-start;
 }
 
 #lifecontrols > div {
@@ -185,12 +218,18 @@ canvas {
 }
 
 #panels {
-    display        : flex;
-    justify-content: flex-end;
+    display         : -webkit-box;
+    display         : -ms-flexbox;
+    display         : flex;
+    -webkit-box-pack: end;
+    -ms-flex-pack   : end;
+    justify-content : flex-end;
 }
 
 #panels a {
-    flex: 1 1 100px;
+    -webkit-box-flex: 1;
+    -ms-flex        : 1 1 100px;
+    flex            : 1 1 100px;
 }
 
 #controls {
