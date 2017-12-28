@@ -778,21 +778,27 @@ $(function () {
                 return closestBugs.slice(-self.flockingPeers);
             };
             self.converge = function () {
+                let targetOffset = 200;
                 if (buggers.bugs.length > 1) {
                     let closestBugs = self.findClosestBugsInfront();
                     if (closestBugs.length > 1) {
                         let meanPoint = [0, 0];
+                        let meanVector = [0, 0];
                         const count = closestBugs.length;
                         let i = 0;
                         for (; i < count; i += 1) {
                             let thisBug = closestBugs[i];
                             meanPoint[0] += thisBug.x;
                             meanPoint[1] += thisBug.y;
+                            meanVector[0] += Math.cos(thisBug.direction);
+                            meanVector[1] += Math.sin(thisBug.direction);
                         }
                         meanPoint[0] = Math.round(meanPoint[0] / closestBugs.length);
                         meanPoint[1] = Math.round(meanPoint[1] / closestBugs.length);
-                        let directionToClosestBugs = self.calcAngle(meanPoint);
-                        self.nudge(directionToClosestBugs);
+                        let meanAnle = Math.atan2(meanVector[1], meanVector[0]);
+                        let meanTarget = [meanPoint[0] + Math.cos(meanAnle) * targetOffset, meanPoint[1] + Math.sin(meanAnle) * targetOffset];
+                        let directionToTarget = self.calcAngle(meanTarget);
+                        self.nudge(directionToTarget);
                     }
                 }
             };
