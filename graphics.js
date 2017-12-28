@@ -628,7 +628,8 @@ $(function () {
 
         giveBirth: function (mother) {
 
-            let inheritFromFather = function (properties, dad, child) {
+            let inheritFromFather = function (dad, child) {
+                const properties = ['minRadius', 'poopSteps', 'turnSteps', 'flockingPeers', 'flockSteps', 'maxSteps'];
                 const count = properties.length;
                 let i = 0;
                 for (; i < count; i += 1) {
@@ -639,11 +640,10 @@ $(function () {
 
             let inheritFromMother = function (mom, child) {
                 child.direction = mom.direction;
-                child.turnAmount = (mom.turnAmount + helpers.randomSign() * Math.random() * mom.turnAmount / 10) % (TAU);
+                child.turnAmount = helpers.fixedDecimals(Math.abs((mom.turnAmount + helpers.randomSign() * Math.random() * PI) % (TAU)));
                 let besideDir = mom.direction + helpers.randomSign() * PI / 2;
                 child.y = helpers.fixedDecimals(mom.y + Math.sin(besideDir) * (Math.random() * 20 + mom.radius));
                 child.x = helpers.fixedDecimals(mom.x + Math.cos(besideDir) * (Math.random() * 20 + mom.radius));
-                child.turnAmount = (mom.turnAmount + helpers.randomSign() * Math.random() * mom.turnAmount / 10) % (TAU);
                 child.parentId = mom.id;
             };
 
@@ -665,12 +665,12 @@ $(function () {
 
             if (father) {
                 oldestBug = (mother.generation > father.generation) ? mother : father;
-                inheritFromFather(['minRadius', 'poopSteps', 'turnSteps', 'flockingPeers', 'flockSteps', 'maxSteps'], father, baby);
+                inheritFromFather(father, baby);
                 inheritProperties(mother, father, baby);
                 father.offspring += 1;
             } else {
                 oldestBug = mother;
-                inheritFromFather(['minRadius', 'poopSteps', 'turnSteps', 'flockingPeers', 'flockSteps', 'maxSteps'], mother, baby);
+                inheritFromFather(mother, baby);
                 inheritProperties(mother, mother, baby);
             }
 
