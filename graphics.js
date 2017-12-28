@@ -531,7 +531,7 @@ $(function () {
         birthFat: 1000,
         bugId: 1,
         bugs: [],
-        cellNutritionValue: 3,
+        cellNutritionValue: 4,
         flocking: $('.flock').is(":checked"),
         graveMultiplier: 10,
         flockingDistance: 50, // this.flockingDistance;
