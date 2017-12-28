@@ -58,7 +58,7 @@ $(function () {
         // Fade the old graph a bit to white
         fadeGraph: function () {
             let ctx = this.graphCanvas.getContext('2d');
-            ctx.fillStyle = "rgba(255, 255, 255, 0.5)";
+            ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
             ctx.fillRect(0, 0, this.graphCanvas.width, this.graphCanvas.height);
         },
 
@@ -298,7 +298,7 @@ $(function () {
                 let mouseX = Math.floor((event.offsetX ? (event.offsetX) : event.pageX - this.offsetLeft) / display.cellSize);
                 let mouseY = Math.floor((event.offsetY ? (event.offsetY) : event.pageY - this.offsetTop) / display.cellSize);
                 conway.liveCells.push(conway.celXY(mouseX, mouseY));
-                conway.drawCells();
+                display.drawCells();
                 display.updateCellularData();
             });
 
@@ -603,7 +603,7 @@ $(function () {
             let deadBugs = [];
             for (; i < count; i += 1) {
                 const thisBug = buggers.bugs[i];
-                thisBug.move();
+                thisBug.buildActivityStack();
                 if (!thisBug.alive) {
                     deadBugs.push(i);
                 }
@@ -626,51 +626,61 @@ $(function () {
             }
         },
 
-        giveBirth: function (bug) {
+        giveBirth: function (mother) {
 
-            // bug.action = 'giving birth';
+            let inheritFromFather = function (properties, dad, child) {
+                const count = properties.length;
+                let i = 0;
+                for (; i < count; i += 1) {
+                    const property = properties[i];
+                    child[property] = Math.abs(Math.round(dad[property] + helpers.randomSign() * dad[property] / 10));
+                }
+            };
 
-            let partnerBug = buggers.bugs.filter(function (bug) {
-                return bug.id === bug.partnerId;
+            let inheritFromMother = function (mom, child) {
+                child.direction = mom.direction;
+                child.turnAmount = (mom.turnAmount + helpers.randomSign() * Math.random() * mom.turnAmount / 10) % (TAU);
+                let besideDir = mom.direction + helpers.randomSign() * PI / 2;
+                child.y = helpers.fixedDecimals(mom.y + Math.sin(besideDir) * (Math.random() * 20 + mom.radius));
+                child.x = helpers.fixedDecimals(mom.x + Math.cos(besideDir) * (Math.random() * 20 + mom.radius));
+                child.turnAmount = (mom.turnAmount + helpers.randomSign() * Math.random() * mom.turnAmount / 10) % (TAU);
+                child.parentId = mom.id;
+            };
+
+            let inheritProperties = function (mom, dad, child) {
+                // percentage from parents
+                child.fat = Math.round((mom.fat + dad.fat) / 5);
+                dad.fat = Math.round(dad.fat * 0.8);
+                mom.fat = Math.round(mom.fat * 0.8);
+                child.generation = oldestBug.generation + 1;
+            };
+
+            let father = buggers.bugs.filter(function (bug) {
+                return bug.id === mother.partnerId;
             })[0];
-            let strongestBug;
-            let weakestBug;
             let oldestBug;
 
-            if (partnerBug) {
-                partnerBug.offspring += 1;
-                partnerBug.fat -= buggers.minBugFat;
-                strongestBug = (bug.fat > partnerBug.fat) ? bug : partnerBug;
-                weakestBug = (bug.fat < partnerBug.fat) ? bug : partnerBug;
-                oldestBug = (bug.generation > partnerBug.generation) ? bug : partnerBug;
+            let baby = new buggers.randomBug();
+            inheritFromMother(mother, baby);
+
+            if (father) {
+                oldestBug = (mother.generation > father.generation) ? mother : father;
+                inheritFromFather(['minRadius', 'poopSteps', 'turnSteps', 'flockingPeers', 'flockSteps', 'maxSteps'], father, baby);
+                inheritProperties(mother, father, baby);
+                father.offspring += 1;
             } else {
-                strongestBug = bug;
-                weakestBug = bug;
-                oldestBug = bug;
+                oldestBug = mother;
+                inheritFromFather(['minRadius', 'poopSteps', 'turnSteps', 'flockingPeers', 'flockSteps', 'maxSteps'], mother, baby);
+                inheritProperties(mother, mother, baby);
             }
 
-            bug.offspring += 1;
-            bug.fat -= buggers.minBugFat;
-            bug.partnerId = null;
-            bug.pregnant = false;
-            bug.recoverySteps = 0;
 
-            let newBornBug = new buggers.randomBug();
-            newBornBug.init();
+            buggers.bugs.push(baby);
 
-            newBornBug.parentId = (bug.gender == 0) ? bug.id : partnerBug.id;
-            newBornBug.generation = oldestBug.generation + 1;
-
-            newBornBug.y = helpers.fixedDecimals(bug.y + Math.sin(bug.direction + helpers.randomSign() * PI / 2) * (Math.random() * 50 + bug.radius));
-            newBornBug.x = helpers.fixedDecimals(bug.x + Math.cos(bug.direction + helpers.randomSign() * PI / 2) * (Math.random() * 50 + bug.radius));
-
-            newBornBug.turnSteps = Math.abs(Math.round(strongestBug.turnSteps + helpers.randomSign() * weakestBug.turnSteps / 10));
-
-            newBornBug.turnAmount = (strongestBug.turnAmount + helpers.randomSign() * Math.random() * weakestBug.turnAmount / 10) % (PI * 2);
-
-            newBornBug.poopSteps = Math.round(strongestBug.poopSteps + helpers.randomSign() * weakestBug.poopSteps / 10);
-
-            buggers.bugs.push(newBornBug);
+            mother.offspring += 1;
+            mother.partnerId = null;
+            mother.pregnant = false;
+            mother.recoverySteps = 0;
         },
 
         // If parent exists return it
@@ -705,7 +715,6 @@ $(function () {
             self.foodLeft = 0;
             self.foodRight = 0;
             self.generation = 0;
-            self.goal = 'none';
             self.goldenRatio = 1.618;
             self.maxRadius = 15;
             self.minRadius = 0;
@@ -917,7 +926,7 @@ $(function () {
             self.isPriority = function (newSteps) {
                 return self.steps % newSteps == 0;
             };
-            self.move = function () {
+            self.buildActivityStack = function () {
                 self.steps += 1;
                 self.actionStack = [];
                 self.alive = self.isAlive();
@@ -949,7 +958,7 @@ $(function () {
                 self.actionStack.push('advance');
                 self.actionStack.reverse();
 
-                self.navigate();
+                self.applyActivityStack();
             };
             // bug is moving with decreasing y
             self.movingDown = function () {
@@ -958,7 +967,7 @@ $(function () {
             self.movingToRight = function () {
                 return Math.cos(self.direction) > 0;
             };
-            self.navigate = function () {
+            self.applyActivityStack = function () {
                 const count = self.actionStack.length;
                 let i = 0;
                 for (; i < count; i += 1) {
@@ -1228,8 +1237,4 @@ $(function () {
 });
 
 // TODO
-// inherit flocking steps
-// divert better
-// inherit (flocking) distance
-// young bugs die too soon
-// cleaner bug navigation
+// https://keep.google.com/#LIST/1514477052030.1526853250
