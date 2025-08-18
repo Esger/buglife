@@ -1234,6 +1234,11 @@ $(function () {
         startBugLife();
     }
 
+    if (window.parent !== window) {
+        // document is being loaded in an iframe
+        $('body').addClass('isIframed');
+    }
+
 });
 
 // TODO
