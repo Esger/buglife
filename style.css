@@ -1,42 +1,45 @@
 @charset "utf-8";
+
 /* CSS Document */
 * {
     margin : 0;
     padding: 0;
 }
 
-body, html {
+body,
+html {
     font       : 12px 'trebuchet MS';
     line-height: 20px;
     color      : #404000;
 }
 
-body {
-    display        : -webkit-box;
-    display        : -ms-flexbox;
+html:not(.isIframed) body {
     display        : flex;
-    -ms-flex-pack  : distribute;
     justify-content: space-around;
 }
 
+.isIframed {
+    #container {
+        display: block;
+        margin : 0;
+        padding: 0;
+        width  : 100%;
+
+        *:not(#thetoroid) {
+            display: none;
+        }
+    }
+}
+
 #container {
-    -webkit-box-flex     : 0;
-    -ms-flex             : 0 0 750px;
-    flex                 : 0 0 750px;
-    margin               : 0 auto;
-    display              : -webkit-box;
-    display              : -ms-flexbox;
-    display              : flex;
-    -webkit-box-orient   : vertical;
-    -webkit-box-direction: normal;
-    -ms-flex-direction   : column;
-    flex-direction       : column;
-    -webkit-box-pack     : start;
-    -ms-flex-pack        : start;
-    justify-content      : flex-start;
-    padding              : 50px;
-    background-color     : #dd0;
-    min-height           : 100%;
+    flex            : 0 0 750px;
+    margin          : 0 auto;
+    display         : flex;
+    flex-direction  : column;
+    justify-content : flex-start;
+    padding         : 50px;
+    background-color: #dd0;
+    min-height      : 100%;
 }
 
 h1 {
@@ -70,12 +73,20 @@ form {
     display: block;
 }
 
-input, label {
+input,
+label {
     color: #404000;
     font : 12px bold 'trebuchet MS';
 }
 
-#bugrules a, #bugrules input, #liferules input, .cellsizer, .flock, .history, .trails, input[type='number'] {
+#bugrules a,
+#bugrules input,
+#liferules input,
+.cellsizer,
+.flock,
+.history,
+.trails,
+input[type='number'] {
     margin: 5px 3px 0 0;
 }
 
@@ -86,55 +97,46 @@ input[type='number'] {
 canvas {
     border          : 0 solid black;
     background-color: white;
-    margin-bottom   : 18px;
+    margin-block    : 18px;
     color           : #404000;
     font            : 8px bold 'trebuchet MS';
     text-align      : center;
+
+    .isIframed & {
+        margin: 0;
+        width : 250px;
+        height: 187px;
+    }
 }
 
-#thetoroid {
-    margin-top: 18px;
-}
-
-#bugrules, #liferules {
+#bugrules,
+#liferules {
     display: none;
 }
 
-#bugrules > div, #liferules > div {
-    display              : -webkit-box;
-    display              : -ms-flexbox;
-    display              : flex;
-    -webkit-box-orient   : horizontal;
-    -webkit-box-direction: normal;
-    -ms-flex-direction   : row;
-    flex-direction       : row;
-    -ms-flex-wrap        : wrap;
-    flex-wrap            : wrap;
-    -webkit-box-pack     : start;
-    -ms-flex-pack        : start;
-    justify-content      : flex-start;
-    width                : 500px;
+#bugrules>div,
+#liferules>div {
+    display        : flex;
+    flex-direction : row;
+    flex-wrap      : wrap;
+    justify-content: flex-start;
+    width          : 500px;
 }
 
-#bugrules > div > label {
-    -webkit-box-flex: 1;
-    -ms-flex        : 1 0 200px;
-    flex            : 1 0 200px;
+#bugrules>div>label {
+    flex: 1 0 200px;
 }
 
-#liferules > div > label {
-    -webkit-box-flex: 1;
-    -ms-flex        : 1 0 25px;
-    flex            : 1 0 25px;
+#liferules>div>label {
+    flex: 1 0 25px;
 }
 
-#liferules > div > label:first-child {
-    -webkit-box-flex: 1;
-    -ms-flex        : 1 0 60px;
-    flex            : 1 0 60px;
+#liferules>div>label:first-child {
+    flex: 1 0 60px;
 }
 
-#data a, #data p {
+#data a,
+#data p {
     font-size: 12px;
 }
 
@@ -162,52 +164,33 @@ canvas {
 }
 
 .buttonRow {
-    display              : -webkit-box;
-    display              : -ms-flexbox;
-    display              : flex;
-    -webkit-box-orient   : horizontal;
-    -webkit-box-direction: normal;
-    -ms-flex-direction   : row;
-    flex-direction       : row;
-    -webkit-box-pack     : justify;
-    -ms-flex-pack        : justify;
-    justify-content      : space-between;
+    display        : flex;
+    flex-direction : row;
+    justify-content: space-between;
 }
 
 .buttonRow div {
-    display              : -webkit-box;
-    display              : -ms-flexbox;
-    display              : flex;
-    -webkit-box-orient   : horizontal;
-    -webkit-box-direction: normal;
-    -ms-flex-direction   : row;
-    flex-direction       : row;
+    display       : flex;
+    flex-direction: row;
 }
 
-.buttonRow div a, .buttonRow div label {
+.buttonRow div a,
+.buttonRow div label {
     display: inline-block;
-
 }
 
 #lifecontrols {
-    display              : -webkit-box;
-    display              : -ms-flexbox;
-    display              : flex;
-    -webkit-box-orient   : vertical;
-    -webkit-box-direction: normal;
-    -ms-flex-direction   : column;
-    flex-direction       : column;
-    -webkit-box-pack     : start;
-    -ms-flex-pack        : start;
-    justify-content      : flex-start;
+    display        : flex;
+    flex-direction : column;
+    justify-content: flex-start;
 }
 
-#lifecontrols > div {
-    margin: 0 0 16px;
-    border: 0 solid black;
+#lifecontrols>div {
+    margin           : 0 0 16px;
+    border           : 0 solid black;
     /* flex          : 0 1 auto;
-    display       : flex;
-    flex-direction: row; */
+    display          : flex;
+    flex-direction   : row; */
 }
 
 #steppingcontrols a {
@@ -218,82 +201,83 @@ canvas {
 }
 
 #panels {
-    display         : -webkit-box;
-    display         : -ms-flexbox;
-    display         : flex;
-    -webkit-box-pack: end;
-    -ms-flex-pack   : end;
-    justify-content : flex-end;
+    display        : flex;
+    justify-content: flex-end;
 }
 
 #panels a {
-    -webkit-box-flex: 1;
-    -ms-flex        : 1 1 100px;
-    flex            : 1 1 100px;
+    flex: 1 1 100px;
 }
 
 #controls {
     margin-bottom: 12px;
 }
 
-#controls a.hidden, .hidden {
+#controls a.hidden,
+.hidden {
     display: none;
 }
 
-#controls #startbutton {
-    width              : 38px;
-    background-position: 0 -99px;
+#controls {
+    #startbutton {
+        width              : 38px;
+        background-position: 0 -99px;
+    }
+
+    #randombutton {
+        margin-right: 10px;
+    }
+
+    #startbutton:hover {
+        background-position: -50px -99px;
+    }
+
+    #prevbutton {
+        background-position: 0 -74px;
+    }
+
+    #prevbutton:hover {
+        background-position: -50px -74px;
+    }
+
+    #stopbutton {
+        background-position: 0 0;
+    }
+
+    #stopbutton:hover {
+        background-position: -50px 0;
+    }
+
+    #stepbutton {
+        background-position: 0 -49px;
+    }
+
+    #stepbutton:hover {
+        background-position: -50px -49px;
+    }
+
+    #clearbutton {
+        background-position: 0 -25px;
+    }
+
+    #clearbutton:hover {
+        background-position: -50px -25px;
+    }
+
+    #randombutton {
+        background-position: 0 -125px;
+    }
+
+    #randombutton:hover {
+        background-position: -50px -125px;
+    }
 }
 
-#controls #randombutton {
-    margin-right: 10px;
-}
 
-#controls #startbutton:hover {
-    background-position: -50px -99px;
-}
 
-#controls #prevbutton {
-    background-position: 0 -74px;
-}
 
-#controls #prevbutton:hover {
-    background-position: -50px -74px;
-}
-
-#controls #stopbutton {
-    background-position: 0 0;
-}
-
-#controls #stopbutton:hover {
-    background-position: -50px 0;
-}
-
-#controls #stepbutton {
-    background-position: 0 -49px;
-}
-
-#controls #stepbutton:hover {
-    background-position: -50px -49px;
-}
-
-#controls #clearbutton {
-    background-position: 0 -25px;
-}
-
-#controls #clearbutton:hover {
-    background-position: -50px -25px;
-}
-
-#controls #randombutton {
-    background-position: 0 -125px;
-}
-
-#controls #randombutton:hover {
-    background-position: -50px -125px;
-}
-
-a.button, a.toggler {
+a.button,
+a.toggler {
     background-image: none;
     background-color: #8c8c00;
     border-radius   : 3px;
@@ -316,18 +300,4 @@ a.toggler:hover {
 
 .h {
     display: none;
-}
-
-#ads {
-    width      : 121px;
-    height     : 600px;
-    float      : right;
-    margin-left: 10px;
-}
-
-/* Google+1 */
-#___plusone_0 {
-    position: absolute;
-    left    : 10px;
-    top     : 10px;
 }
