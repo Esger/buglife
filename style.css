@@ -13,7 +13,7 @@ html {
     color      : #404000;
 }
 
-body {
+html:not(.isIframed) body {
     display        : flex;
     justify-content: space-around;
 }
@@ -97,14 +97,16 @@ input[type='number'] {
 canvas {
     border          : 0 solid black;
     background-color: white;
-    margin-bottom   : 18px;
+    margin-block    : 18px;
     color           : #404000;
     font            : 8px bold 'trebuchet MS';
     text-align      : center;
-}
 
-#thetoroid {
-    margin-top: 18px;
+    .isIframed & {
+        margin: 0;
+        width : 250px;
+        height: 187px;
+    }
 }
 
 #bugrules,

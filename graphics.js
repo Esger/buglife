@@ -1229,14 +1229,16 @@ $(function () {
         display.updateCellularData();
     }
 
-    firstStep();
-    if (running === false) {
-        startBugLife();
-    }
-
     if (window.parent !== window) {
         // document is being loaded in an iframe
         $('body').addClass('isIframed');
+        $('#thetoroid').attr('width', '500');
+        $('#thetoroid').attr('height', '374');
+    }
+
+    firstStep();
+    if (running === false) {
+        startBugLife();
     }
 
 });
