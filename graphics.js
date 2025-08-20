@@ -281,7 +281,7 @@ $(function () {
 
             $('canvas').on('mouseover', function () {
                 display.showIds = true;
-                interval = 250;
+                interval = isIframed ? 0 : 10;
                 display.dataCycle = 1;
                 stopStartBugLife();
             });
@@ -1117,7 +1117,7 @@ $(function () {
 
     let isIframed = false;
     var gogogo = null,
-        interval = isIframed ? 100 : 0, // Milliseconds between iterations
+        interval = isIframed ? 10 : 0, // Milliseconds between iterations
         running = false,
         speedHandle = null;
 
@@ -1233,6 +1233,7 @@ $(function () {
     if (window.parent !== window) {
         // document is being loaded in an iframe
         isIframed = true;
+        interval = 10;
         $('body').addClass('isIframed');
         $('#thetoroid').attr('width', '500');
         $('#thetoroid').attr('height', '374');
